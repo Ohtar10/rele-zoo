@@ -1,16 +1,11 @@
 name: rele-zoo
 channels:
   - pytorch
-  - rusty1s
-  - conda-forge
   - defaults
 dependencies:
   - python=3.8
   - pytorch>=1.8.0
-  - tensorflow-gpu>=2.4.0
-  - tensorboard
-  - jupyter
-  - jupyterlab
+  - tensorboardX
   - pip
   - pip:
       - pytest
