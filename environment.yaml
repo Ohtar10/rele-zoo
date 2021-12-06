@@ -6,6 +6,7 @@ dependencies:
   - python=3.8
   - pytorch>=1.8.0
   - tensorboardX
+  - tensorboard
   - pip
   - pip:
       - pytest
@@ -17,4 +18,6 @@ dependencies:
       - flake8-docstrings
       - mypy
       - gym
+      - pyglet
+      - moviepy
       - tqdm

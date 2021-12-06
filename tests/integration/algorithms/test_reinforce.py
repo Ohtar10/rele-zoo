@@ -13,9 +13,10 @@ def test_smoke_train_reinforce(mock_logger):
         nn.Tanh(),
         nn.Linear(32, env.action_space.n)
     )
-    algo = Reinforce(env, net, mock_logger, epochs=5)
+    algo = Reinforce(env, net, mock_logger, epochs=5, render=True)
     algo.train()
-    assert mock_logger.add_scalars.call_count == 5
+    assert mock_logger.add_scalar.call_count == 5 * 3  # 5 epochs * 3 metrics
+    assert mock_logger.add_video.call_count == 2  # once in the beginning and once in the end
 
 
 @pytest.mark.parametrize("env", [

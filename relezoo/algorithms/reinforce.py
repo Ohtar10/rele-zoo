@@ -59,9 +59,12 @@ class Reinforce:
                 progress.set_postfix({
                     "loss": f"{batch_loss:.2f}",
                     "score": f"{np.mean(batch_returns):.2f}",
-                    "episode_length": f"{np.mean(batch_lens)}"
+                    "episode_length": f"{np.mean(batch_lens):.2f}"
                 })
                 progress.update()
+        if self.logger is not None:
+            self.logger.flush()
+            self.logger.close()
 
     def __train_epoch(self) -> (float, float, int):
         batch_obs = []
@@ -73,10 +76,12 @@ class Reinforce:
         obs = self.env.reset()
         episode_rewards = []
         render_epoch = False
+        render_frames = []
 
         while True:
             if self.render and not render_epoch:
                 self.env.render()
+                render_frames.append(self.env.render(mode='rgb_array'))
 
             batch_obs.append(obs.copy())
 
@@ -101,20 +106,41 @@ class Reinforce:
                     break
 
         batch_loss = self.policy.learn(
-            torch.from_numpy(batch_obs),
-            torch.from_numpy(batch_actions),
-            torch.from_numpy(batch_weights)
+            torch.from_numpy(np.array(batch_obs)),
+            torch.from_numpy(np.array(batch_actions)),
+            torch.from_numpy(np.array(batch_weights))
         )
 
-        if self.logger is not None:
-            self.logger.add_scalars(f'{self.env.spec.id}', {
-                'loss': batch_loss,
-                'return': np.mean(batch_returns),
-                'episode_length': np.mean(batch_lens)
-            }, global_step=self.train_steps)
+        self.__log(batch_loss, batch_returns, batch_lens, render_frames)
+
         self.train_steps += 1
 
         return batch_loss, batch_returns, batch_lens
+
+    def __log(self, batch_loss, batch_returns, batch_lens, render_frames):
+        if self.logger is not None:
+            self.logger.add_scalar('loss', batch_loss, self.train_steps)
+            self.logger.add_scalar('return', np.mean(batch_returns), self.train_steps)
+            self.logger.add_scalar('episode_length', np.mean(batch_lens), self.train_steps)
+
+            for name, p in self.policy.net.named_parameters():
+                if p.grad is None:
+                    continue
+                name = name.replace(".", "/")
+                self.logger.add_histogram(
+                    tag=f"grads/{name}", values=p.grad.detach().cpu().numpy(), global_step=self.train_steps
+                )
+
+            # Render video every 10 steps only or in the last epoch
+            if render_frames and (self.train_steps % 10 == 0 or self.train_steps == self.epochs - 1):
+                # T x H x W x C
+                sequence = np.array(render_frames)
+                # T x C x W x H
+                sequence = np.transpose(sequence, [0, 3, 1, 2])
+                # B x T x C x W x H
+                sequence = np.expand_dims(sequence, axis=0)
+                tag = 'end-training' if self.train_steps == self.epochs - 1 else 'training'
+                self.logger.add_video(tag, vid_tensor=sequence, global_step=self.train_steps, fps=8)
 
     def play(self):
         pass
