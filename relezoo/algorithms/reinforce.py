@@ -37,17 +37,15 @@ class Policy:
 
 class Reinforce:
 
-    def __init__(self, env: Env, net: nn.Module, logger: Optional[SummaryWriter] = None, epochs: int = 50,
+    def __init__(self, env: Env, policy: Policy, logger: Optional[SummaryWriter] = None, epochs: int = 50,
                  batch_size: int = 5000,
-                 learning_date: float = 1e-2,
                  render: bool = False):
         self.env = env
         self.obs_space = env.observation_space.shape[0]
         self.act_space = env.action_space.n
-        self.policy = Policy(net, learning_date)
+        self.policy = policy
         self.epochs = epochs
         self.batch_size = batch_size
-        self.learning_rate = learning_date
         self.render = render
         self.logger = logger
         self.train_steps = 0
@@ -55,18 +53,19 @@ class Reinforce:
     def train(self):
         with tqdm(total=self.epochs) as progress:
             for i in range(1, self.epochs + 1):
-                batch_loss, batch_returns, batch_lens = self.__train_epoch()
+                batch_loss, batch_returns, batch_lens = self._train_epoch()
                 progress.set_postfix({
                     "loss": f"{batch_loss:.2f}",
                     "score": f"{np.mean(batch_returns):.2f}",
                     "episode_length": f"{np.mean(batch_lens):.2f}"
                 })
                 progress.update()
+                if self.logger is not None:
+                    self.logger.flush()
         if self.logger is not None:
-            self.logger.flush()
             self.logger.close()
 
-    def __train_epoch(self) -> (float, float, int):
+    def _train_epoch(self) -> (float, float, int):
         batch_obs = []
         batch_actions = []
         batch_weights = []
@@ -81,6 +80,8 @@ class Reinforce:
         while True:
             if self.render and not render_epoch:
                 self.env.render()
+
+            if not render_epoch:
                 render_frames.append(self.env.render(mode='rgb_array'))
 
             batch_obs.append(obs.copy())
@@ -135,9 +136,9 @@ class Reinforce:
             if render_frames and (self.train_steps % 10 == 0 or self.train_steps == self.epochs - 1):
                 # T x H x W x C
                 sequence = np.array(render_frames)
-                # T x C x W x H
+                # T x C x H x W
                 sequence = np.transpose(sequence, [0, 3, 1, 2])
-                # B x T x C x W x H
+                # B x T x C x H x W
                 sequence = np.expand_dims(sequence, axis=0)
                 tag = 'end-training' if self.train_steps == self.epochs - 1 else 'training'
                 self.logger.add_video(tag, vid_tensor=sequence, global_step=self.train_steps, fps=8)
