@@ -31,4 +31,4 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest -v -s tests
+          xvfb-run -s "-screen 0 1400x900x24" pytest -v -s tests
