@@ -27,7 +27,7 @@ jobs:
       - name: Setup additional dependencies
         run: |
           conda install pyopengl ffmpeg
-          sudo apt install xvfb
+          sudo apt install xvfb libglu1-mesa libglu1-mesa-dev
 
       - name: Run tests
         run: |
