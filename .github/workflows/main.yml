@@ -24,10 +24,10 @@ jobs:
           environment-file: ./environment.yaml
           activate-environment: rele-zoo
 
-      - name: Setup os dependencies
+      - name: Setup additional dependencies
         run: |
-          conda install pyopengl
-          apt install ffmpeg xvfb
+          conda install pyopengl ffmpeg
+          sudo apt install xvfb
 
       - name: Run tests
         run: |
