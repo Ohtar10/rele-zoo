@@ -10,50 +10,51 @@ from gym import Env
 
 
 class Policy:
-    def __init__(self, net: nn.Module, learning_rate: float):
+    def __init__(self, net: nn.Module, learning_rate: float = 1e-2):
         self.net = net
         self.optimizer = optim.Adam(self.net.parameters(), learning_rate)
 
     def act(self, obs: torch.Tensor) -> (torch.Tensor, int):
-        logits = self.__get_policy(obs)
+        logits = self._get_policy(obs)
         action = logits.sample().item()
         return action
 
-    def __get_policy(self, obs: torch.Tensor):
+    def _get_policy(self, obs: torch.Tensor):
         logits = self.net(obs)
         return torch.distributions.Categorical(logits=logits)
 
     def learn(self, batch_obs: torch.Tensor, batch_actions: torch.Tensor, batch_weights: torch.Tensor):
         self.optimizer.zero_grad()
-        batch_loss = self.__compute_loss(batch_obs, batch_actions, batch_weights)
+        batch_loss = self._compute_loss(batch_obs, batch_actions, batch_weights)
         batch_loss.backward()
         self.optimizer.step()
         return batch_loss
 
-    def __compute_loss(self, obs, actions, weights):
-        logp = self.__get_policy(obs).log_prob(actions)
+    def _compute_loss(self, obs, actions, weights):
+        logp = self._get_policy(obs).log_prob(actions)
         return -(logp * weights).mean()
+
+    def save(self, save_path: str):
+        torch.save(self.net, save_path)
 
 
 class Reinforce:
 
-    def __init__(self, env: Env, policy: Policy, logger: Optional[SummaryWriter] = None, epochs: int = 50,
-                 batch_size: int = 5000,
-                 render: bool = False):
+    def __init__(self, env: Env, policy: Optional[Policy] = None, logger: Optional[SummaryWriter] = None):
         self.env = env
         self.obs_space = env.observation_space.shape[0]
         self.act_space = env.action_space.n
         self.policy = policy
-        self.epochs = epochs
-        self.batch_size = batch_size
-        self.render = render
         self.logger = logger
         self.train_steps = 0
 
-    def train(self):
-        with tqdm(total=self.epochs) as progress:
-            for i in range(1, self.epochs + 1):
-                batch_loss, batch_returns, batch_lens = self._train_epoch()
+    def train(self, epochs: int = 50, batch_size: int = 5000, render: bool = False):
+        assert self.policy is not None, "The policy is not defined."
+
+        with tqdm(total=epochs) as progress:
+            for i in range(1, epochs + 1):
+                is_last_epoch = i == epochs
+                batch_loss, batch_returns, batch_lens = self._train_epoch(batch_size, render, is_last_epoch)
                 progress.set_postfix({
                     "loss": f"{batch_loss:.2f}",
                     "score": f"{np.mean(batch_returns):.2f}",
@@ -65,7 +66,10 @@ class Reinforce:
         if self.logger is not None:
             self.logger.close()
 
-    def _train_epoch(self) -> (float, float, int):
+    def _train_epoch(self,
+                     batch_size: int = 5000,
+                     render: bool = False,
+                     is_last_epoch: bool = False) -> (float, float, int):
         batch_obs = []
         batch_actions = []
         batch_weights = []
@@ -78,7 +82,7 @@ class Reinforce:
         render_frames = []
 
         while True:
-            if self.render and not render_epoch:
+            if render and not render_epoch:
                 self.env.render()
 
             if not render_epoch:
@@ -103,7 +107,7 @@ class Reinforce:
 
                 render_epoch = True
 
-                if len(batch_obs) > self.batch_size:
+                if len(batch_obs) > batch_size:
                     break
 
         batch_loss = self.policy.learn(
@@ -112,13 +116,13 @@ class Reinforce:
             torch.from_numpy(np.array(batch_weights))
         )
 
-        self.__log(batch_loss, batch_returns, batch_lens, render_frames)
+        self._log(is_last_epoch, batch_loss, batch_returns, batch_lens, render_frames)
 
         self.train_steps += 1
 
         return batch_loss, batch_returns, batch_lens
 
-    def __log(self, batch_loss, batch_returns, batch_lens, render_frames):
+    def _log(self, is_last_epoch: bool, batch_loss, batch_returns, batch_lens, render_frames):
         if self.logger is not None:
             self.logger.add_scalar('loss', batch_loss, self.train_steps)
             self.logger.add_scalar('return', np.mean(batch_returns), self.train_steps)
@@ -133,15 +137,44 @@ class Reinforce:
                 )
 
             # Render video every 10 steps only or in the last epoch
-            if render_frames and (self.train_steps % 10 == 0 or self.train_steps == self.epochs - 1):
+            if render_frames and (self.train_steps % 10 == 0 or is_last_epoch):
                 # T x H x W x C
                 sequence = np.array(render_frames)
                 # T x C x H x W
                 sequence = np.transpose(sequence, [0, 3, 1, 2])
                 # B x T x C x H x W
                 sequence = np.expand_dims(sequence, axis=0)
-                tag = 'end-training' if self.train_steps == self.epochs - 1 else 'training'
+                tag = 'end-training' if is_last_epoch else 'training'
                 self.logger.add_video(tag, vid_tensor=sequence, global_step=self.train_steps, fps=8)
 
-    def play(self):
-        pass
+    def save(self, save_path: str):
+        self.policy.save(save_path)
+
+    def load(self, load_path: str):
+        net = torch.load(load_path)
+        self.policy = Policy(net)
+
+    def play(self, episodes: int) -> (float, int):
+        assert self.policy is not None, "The policy is not defined."
+        with tqdm(total=episodes) as progress:
+            ep_rewards = []
+            ep_lengths = []
+            for i in range(1, episodes + 1):
+                obs = self.env.reset()
+                ep_length = 1
+                ep_reward = 0
+                while True:
+                    action = self.policy.act(obs)
+                    obs, reward, done, _ = self.env.step(action)
+                    ep_reward += reward
+                    if done:
+                        break
+                    ep_length += 1
+                ep_lengths.append(ep_length)
+                ep_rewards.append(ep_reward)
+                progress.set_postfix({
+                    "Avg. reward": f"{np.mean(ep_rewards):.2f}",
+                    "Avg. ep length": f"{np.mean(ep_length):.2f}"
+                })
+                progress.update()
+        return np.mean(ep_rewards), np.mean(ep_length)
