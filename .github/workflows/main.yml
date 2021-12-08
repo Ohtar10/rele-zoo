@@ -33,3 +33,18 @@ jobs:
       - name: Run tests
         run: |
           xvfb-run -s "-screen 0 1400x900x24" pytest -v -s tests
+
+#      - name: Generate badges
+#       run: |
+#          coverage=`coverage report | grep "TOTAL" | awk '{print $4}' | awk -F "%" '{print $1}'`
+#
+#          if (( $(echo "$coverage <= 50" | bc -l) )) ; then
+#            COLOR=red
+#          elif (( $(echo "$coverage > 80" | bc -l) )); then
+#            COLOR=green
+#          else
+#            COLOR=orange
+#          fi
+#
+#         curl "https://img.shields.io/badge/coverage-$coverage%25-$COLOR" > coverage.svg
+          
