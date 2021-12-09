@@ -1,0 +1,5 @@
+click==8.0.1
+gym==0.21.0
+pyglet==1.5.21
+moviepy==1.0.3
+tqdm==4.62.3
