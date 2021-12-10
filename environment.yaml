@@ -17,6 +17,7 @@ dependencies:
       - flake8
       - flake8-docstrings
       - mypy
+      - ipython==7.26.0
       - click==8.0.1
       - gym==0.21.0
       - pyglet==1.5.21
