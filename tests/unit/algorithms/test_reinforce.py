@@ -54,20 +54,25 @@ def test_load_agent(mocked_torch, mock_env, mock_net):
     mocked_torch.load.called_once_with(load_path)
 
 
+@mock.patch("relezoo.algorithms.reinforce.torch.from_numpy")
 @mock.patch("torch.nn.Module")
 @mock.patch("gym.Env")
-def test_play(mock_env, mock_net):
+def test_play(mock_env, mock_net, mock_from_numpy):
     dummy_parameters = [nn.Parameter(torch.tensor([1., 2.]))]
     mock_net.parameters.return_value = dummy_parameters
     policy = Policy(mock_net)
     algo = Reinforce(mock_env, policy)
     policy.act = mock.MagicMock(side_effect=[0, 1, 1, 0])
-    mock_env.step.side_effect = [
+    steps = [
         (np.array([1, 1, 1]), 1, False, None),
         (np.array([1, 0, 1]), 2, False, None),
         (np.array([1, 1, 0]), 3, False, None),
         (np.array([1, 0, 0]), 4, True, None),
     ]
+    mock_env.step.side_effect = steps
+
+    mock_from_numpy.side_effect = [s[0] for s in steps]
+
     avg_reward, avg_ep_length = algo.play(1)
     mock_env.reset.assert_called_once()
     assert policy.act.call_count == 4

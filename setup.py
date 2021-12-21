@@ -32,6 +32,6 @@ setup(
     install_requires=requirements,
     entry_points='''
         [console_scripts]
-        relezoo=relezoo.cli:relezoo
+        relezoo=relezoo.cli.cli:relezoo
     '''
 )

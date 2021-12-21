@@ -1,4 +1,8 @@
+import os.path
 from typing import Optional
+
+import click
+import gym
 import numpy as np
 import torch
 import torch.nn as nn
@@ -232,7 +236,7 @@ class Reinforce:
                     if render:
                         self.env.render()
 
-                    action = self.policy.act(obs)
+                    action = self.policy.act(torch.from_numpy(obs))
                     obs, reward, done, _ = self.env.step(action)
                     ep_reward += reward
                     if done:
@@ -246,3 +250,51 @@ class Reinforce:
                 })
                 progress.update()
         return np.mean(ep_rewards), np.mean(ep_length)
+
+
+@click.group(name="reinforce-d")
+@click.pass_context
+def command(ctx):
+    """Reinforce for Discrete Action Space"""
+    pass
+
+
+@command.command()
+@click.pass_context
+@click.option("-env", "--environment", required=True, help="Gym environment name.")
+@click.option("-e", "--epochs", default=50, help="Number of training epochs.")
+@click.option("-lr", "--learning-rate", default=1e-2, help="Agent learning rate.")
+def train(ctx, environment: str, epochs: int, learning_rate: float):
+    """Train Reinforce agent"""
+    env = gym.make(environment)
+    net = nn.Sequential(
+        nn.Linear(env.observation_space.shape[0], 64),
+        nn.Linear(64, 128),
+        nn.ReLU(),
+        nn.Linear(128, 64),
+        nn.Tanh(),
+        nn.Linear(64, env.action_space.n)
+    )
+    policy = Policy(net, learning_rate)
+    workdir = os.path.join(ctx.obj['WORK_DIR'], "output")
+    logger = SummaryWriter(logdir=os.path.join(workdir, "tensorboard"))
+    algo = Reinforce(env, policy, logger)
+
+    algo.train(epochs)
+
+    algo.save(os.path.join(workdir, "reinforce-d.cpt"))
+
+
+@command.command()
+@click.pass_context
+@click.option("-env", "--environment", required=True, help="Gym environment name.")
+@click.option("-e", "--episodes", default=5, help="Number of episodes to play.")
+@click.option("-r", "--render", default=False, is_flag=True, help="Enable step rendering.")
+def play(ctx, environment: str, episodes: int, render: bool):
+    """Play the environment using the agent"""
+    env = gym.make(environment)
+    workdir = os.path.join(ctx.obj['WORK_DIR'], "output")
+    algo = Reinforce(env)
+    algo.load(os.path.join(workdir, "reinforce-d.cpt"))
+    algo.play(episodes, render)
+

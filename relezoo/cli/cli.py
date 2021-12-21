@@ -3,6 +3,7 @@ import logging
 import click
 
 from relezoo.__version__ import __version__
+from relezoo.algorithms import reinforce
 from relezoo.utils.console import start_python_console
 
 
@@ -32,3 +33,6 @@ def relezoo(ctx, debug, work_dir):
 def shell(ctx):
     """Run interactive shell with preloaded module resources."""
     start_python_console(banner='ReleZoo shell')
+
+
+relezoo.add_command(reinforce.command)
