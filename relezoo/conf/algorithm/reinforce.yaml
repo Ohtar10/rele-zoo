@@ -1,0 +1,4 @@
+class: relezoo.algorithms.reinforce.Reinforce
+mode: train
+episodes: 50
+learning_rate: 1e-2
