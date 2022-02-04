@@ -1,1 +1,2 @@
-logdir: "tensorboard"
+_target_: tensorboardX.SummaryWriter
+logdir: tensorboard

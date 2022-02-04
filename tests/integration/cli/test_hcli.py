@@ -2,6 +2,7 @@ import pytest
 from hydra import initialize, compose, initialize_config_module
 
 from relezoo.cli import hcli
+from relezoo.engine import Runner
 
 
 def test_cli_composition_smoke() -> None:
@@ -19,6 +20,8 @@ def test_cli_full() -> None:
     with initialize_config_module(config_module="relezoo.conf"):
         cfg = compose(config_name="config")
         try:
-            hcli.run(cfg)
+            # test for only three episodes instead of the default
+            cfg.episodes = 3
+            hcli.hrelezoo(cfg)
         except Exception as e:
             pytest.fail(f"It should not have failed. {e}")

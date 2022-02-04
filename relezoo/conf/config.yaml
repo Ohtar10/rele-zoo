@@ -2,6 +2,22 @@ defaults:
   - _self_
   - environment: cartpole
   - algorithm: reinforce
-  - network: simple-fc
   - logger: tensorboard
   - override hydra/help: relezoo-help
+
+experiment_name: Relezoo
+mode: train
+episodes: 50
+network:
+  infer_in_shape: True
+  infer_out_shape: True
+
+#####################
+
+hydra:
+  run:
+    dir: outputs/${experiment_name}/${now:%Y-%m-%d_%H-%M-%S}
+
+  sweep:
+    dir: outputs/${experiment_name}/multirun
+    subdir: ${hydra.job.num}/${now:%Y-%m-%d_%H-%M-%S}

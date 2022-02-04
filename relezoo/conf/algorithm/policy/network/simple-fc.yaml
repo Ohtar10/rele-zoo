@@ -1,0 +1,3 @@
+_target_: relezoo.networks.simple.SimpleFC
+in_shape: "infer"
+out_shape: "infer"

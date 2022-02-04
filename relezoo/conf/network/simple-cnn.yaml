@@ -1,6 +1,0 @@
-class: "relezoo.networks.SimpleCNN"
-params:
-  input_h: 64
-  input_w: 64
-  input_c: 3
-  output: 10

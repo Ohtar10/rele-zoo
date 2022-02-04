@@ -1,16 +1,12 @@
-import os.path
 from typing import Optional
 
-import click
-import gym
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from gym import Env
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
-
-from gym import Env
 
 from relezoo.utils.network import NetworkMode
 
@@ -29,8 +25,8 @@ class Policy:
     discrete action spaces.
     """
 
-    def __init__(self, net: nn.Module, learning_rate: float = 1e-2):
-        self.net = net
+    def __init__(self, network: nn.Module, learning_rate: float = 1e-2):
+        self.net = network
         self.optimizer = optim.Adam(self.net.parameters(), learning_rate)
 
     def set_mode(self, mode: NetworkMode):

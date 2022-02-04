@@ -1,4 +1,0 @@
-class: "relezoo.networks.SimpleFC"
-params:
-  input_n: "infer"
-  output_n: "infer"

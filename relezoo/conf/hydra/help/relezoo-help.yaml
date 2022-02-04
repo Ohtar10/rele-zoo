@@ -1,5 +1,5 @@
 # App name, override to match the name your app is known by
-app_name: Relezoo
+app_name: Relezoo-run
 
 # Help header, customize to describe your app to your users
 header: == ${hydra.help.app_name} ==
