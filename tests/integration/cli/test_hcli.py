@@ -2,7 +2,6 @@ import pytest
 from hydra import initialize, compose, initialize_config_module
 
 from relezoo.cli import hcli
-from relezoo.engine import Runner
 
 
 def test_cli_composition_smoke() -> None:

@@ -8,10 +8,11 @@ from gym import Env
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
 
+from relezoo.algorithms.base import Policy, Algorithm
 from relezoo.utils.network import NetworkMode
 
 
-class Policy:
+class ReinforcePolicy(Policy):
     """Policy
     This class represents a vanilla policy for REINFORCE.
     It is meant to take actions given an observation
@@ -81,13 +82,13 @@ class Policy:
         torch.save(self.net, save_path)
 
 
-class Reinforce:
+class Reinforce(Algorithm):
     """Reinforce
     Container class for all the necessary logic
     to train and use vanilla policy gradient aka REINFORCE
     with gym environments."""
 
-    def __init__(self, env: Env, policy: Optional[Policy] = None, logger: Optional[SummaryWriter] = None):
+    def __init__(self, env: Env, policy: Optional[ReinforcePolicy] = None, logger: Optional[SummaryWriter] = None):
         self.env = env
         self.obs_space = env.observation_space.shape[0]
         self.act_space = env.action_space.n
@@ -211,7 +212,7 @@ class Reinforce:
 
     def load(self, load_path: str):
         net = torch.load(load_path)
-        self.policy = Policy(net)
+        self.policy = ReinforcePolicy(net)
 
     def play(self, episodes: int, render: bool = False) -> (float, int):
         """play.

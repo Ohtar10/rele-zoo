@@ -1,3 +1,3 @@
-_target_: relezoo.algorithms.reinforce.Policy
+_target_: relezoo.algorithms.reinforce.ReinforcePolicy
 defaults:
   - network: simple-fc

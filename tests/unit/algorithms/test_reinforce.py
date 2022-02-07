@@ -4,7 +4,7 @@ import pytest
 import torch
 import torch.nn as nn
 
-from relezoo.algorithms.reinforce import Reinforce, Policy
+from relezoo.algorithms.reinforce import Reinforce, ReinforcePolicy
 
 
 @mock.patch("tensorboardX.SummaryWriter")
@@ -34,7 +34,7 @@ def test_save_agent(mock_policy, mock_env, mock_logger):
 def test_save_policy(mocked_torch, mock_net):
     dummy_parameters = [nn.Parameter(torch.tensor([1., 2.]))]
     mock_net.parameters.return_value = dummy_parameters
-    policy = Policy(mock_net)
+    policy = ReinforcePolicy(mock_net)
     save_path = "save-path"
     policy.save(save_path)
     mocked_torch.save.called_once_with(mock_net)
@@ -60,7 +60,7 @@ def test_load_agent(mocked_torch, mock_env, mock_net):
 def test_play(mock_env, mock_net, mock_from_numpy):
     dummy_parameters = [nn.Parameter(torch.tensor([1., 2.]))]
     mock_net.parameters.return_value = dummy_parameters
-    policy = Policy(mock_net)
+    policy = ReinforcePolicy(mock_net)
     algo = Reinforce(mock_env, policy)
     policy.act = mock.MagicMock(side_effect=[0, 1, 1, 0])
     steps = [
