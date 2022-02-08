@@ -4,3 +4,4 @@ gym==0.21.0
 pyglet==1.5.21
 moviepy==1.0.3
 tqdm==4.62.3
+hydra-core==1.1.1

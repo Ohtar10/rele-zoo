@@ -3,7 +3,6 @@ import logging
 import click
 
 from relezoo.__version__ import __version__
-from relezoo.algorithms import reinforce
 from relezoo.utils.console import start_python_console
 
 
@@ -35,4 +34,3 @@ def shell(ctx):
     start_python_console(banner='ReleZoo shell')
 
 
-relezoo.add_command(reinforce.command)

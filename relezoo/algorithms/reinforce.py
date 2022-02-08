@@ -1,21 +1,18 @@
-import os.path
 from typing import Optional
 
-import click
-import gym
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from gym import Env
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
 
-from gym import Env
-
+from relezoo.algorithms.base import Policy, Algorithm
 from relezoo.utils.network import NetworkMode
 
 
-class Policy:
+class ReinforcePolicy(Policy):
     """Policy
     This class represents a vanilla policy for REINFORCE.
     It is meant to take actions given an observation
@@ -29,8 +26,8 @@ class Policy:
     discrete action spaces.
     """
 
-    def __init__(self, net: nn.Module, learning_rate: float = 1e-2):
-        self.net = net
+    def __init__(self, network: nn.Module, learning_rate: float = 1e-2):
+        self.net = network
         self.optimizer = optim.Adam(self.net.parameters(), learning_rate)
 
     def set_mode(self, mode: NetworkMode):
@@ -85,13 +82,13 @@ class Policy:
         torch.save(self.net, save_path)
 
 
-class Reinforce:
+class Reinforce(Algorithm):
     """Reinforce
     Container class for all the necessary logic
     to train and use vanilla policy gradient aka REINFORCE
     with gym environments."""
 
-    def __init__(self, env: Env, policy: Optional[Policy] = None, logger: Optional[SummaryWriter] = None):
+    def __init__(self, env: Env, policy: Optional[ReinforcePolicy] = None, logger: Optional[SummaryWriter] = None):
         self.env = env
         self.obs_space = env.observation_space.shape[0]
         self.act_space = env.action_space.n
@@ -215,7 +212,7 @@ class Reinforce:
 
     def load(self, load_path: str):
         net = torch.load(load_path)
-        self.policy = Policy(net)
+        self.policy = ReinforcePolicy(net)
 
     def play(self, episodes: int, render: bool = False) -> (float, int):
         """play.
@@ -250,51 +247,4 @@ class Reinforce:
                 })
                 progress.update()
         return np.mean(ep_rewards), np.mean(ep_length)
-
-
-@click.group(name="reinforce-d")
-@click.pass_context
-def command(ctx):
-    """Reinforce for Discrete Action Space"""
-    pass
-
-
-@command.command()
-@click.pass_context
-@click.option("-env", "--environment", required=True, help="Gym environment name.")
-@click.option("-e", "--epochs", default=50, help="Number of training epochs.")
-@click.option("-lr", "--learning-rate", default=1e-2, help="Agent learning rate.")
-def train(ctx, environment: str, epochs: int, learning_rate: float):
-    """Train Reinforce agent"""
-    env = gym.make(environment)
-    net = nn.Sequential(
-        nn.Linear(env.observation_space.shape[0], 64),
-        nn.Linear(64, 128),
-        nn.ReLU(),
-        nn.Linear(128, 64),
-        nn.Tanh(),
-        nn.Linear(64, env.action_space.n)
-    )
-    policy = Policy(net, learning_rate)
-    workdir = os.path.join(ctx.obj['WORK_DIR'], "output")
-    logger = SummaryWriter(logdir=os.path.join(workdir, "tensorboard"))
-    algo = Reinforce(env, policy, logger)
-
-    algo.train(epochs)
-
-    algo.save(os.path.join(workdir, "reinforce-d.cpt"))
-
-
-@command.command()
-@click.pass_context
-@click.option("-env", "--environment", required=True, help="Gym environment name.")
-@click.option("-e", "--episodes", default=5, help="Number of episodes to play.")
-@click.option("-r", "--render", default=False, is_flag=True, help="Enable step rendering.")
-def play(ctx, environment: str, episodes: int, render: bool):
-    """Play the environment using the agent"""
-    env = gym.make(environment)
-    workdir = os.path.join(ctx.obj['WORK_DIR'], "output")
-    algo = Reinforce(env)
-    algo.load(os.path.join(workdir, "reinforce-d.cpt"))
-    algo.play(episodes, render)
 

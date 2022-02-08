@@ -132,3 +132,4 @@ dmypy.json
 flake8.txt
 .idea/
 report.xml
+outputs/

@@ -2,7 +2,7 @@ import pytest
 import gym
 import torch.nn as nn
 import mock
-from relezoo.algorithms.reinforce import Reinforce, Policy
+from relezoo.algorithms.reinforce import Reinforce, ReinforcePolicy
 
 
 def build_net(env: gym.Env):
@@ -14,7 +14,7 @@ def build_net(env: gym.Env):
 
 
 def build_policy(env: gym.Env, learning_rate: float = 1e-2):
-    return Policy(build_net(env), learning_rate)
+    return ReinforcePolicy(build_net(env), learning_rate)
 
 
 @mock.patch("tensorboardX.SummaryWriter")

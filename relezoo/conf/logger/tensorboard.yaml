@@ -1,0 +1,2 @@
+_target_: tensorboardX.SummaryWriter
+logdir: tensorboard
