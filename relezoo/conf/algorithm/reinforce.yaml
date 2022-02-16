@@ -1,3 +1,0 @@
-_target_: relezoo.algorithms.reinforce.Reinforce
-defaults:
-  - policy: simple

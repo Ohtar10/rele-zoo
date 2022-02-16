@@ -22,6 +22,9 @@ clean-misc:
 	rm report.xml || true
 	rm coverage.xml || true
 	rm .coverage || true
+	rm -rf outputs || true
+	rm -rf relezoo.egg-info || true
+	rm -rf .pytest_cache || true
 
 clean-pyc: ## remove Python file artifacts
 	find . -name '*.pyc' -exec rm -f {} +

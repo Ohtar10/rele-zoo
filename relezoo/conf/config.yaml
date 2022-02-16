@@ -1,7 +1,7 @@
 defaults:
   - _self_
   - environment: cartpole
-  - algorithm: reinforce
+  - algorithm: reinforce-discrete
   - logger: tensorboard
   - override hydra/help: relezoo-help
 
