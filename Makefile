@@ -11,6 +11,9 @@ PROJECT_PATH=relezoo
 install-env:
 	conda env create -f environment.yml
 
+install:
+	pip install -e .
+
 update-env:
 	conda env update -n rele-zoo -f environment.yml
 
@@ -25,6 +28,7 @@ clean-misc:
 	rm -rf outputs || true
 	rm -rf relezoo.egg-info || true
 	rm -rf .pytest_cache || true
+	rm -rf tensorboard || true
 
 clean-pyc: ## remove Python file artifacts
 	find . -name '*.pyc' -exec rm -f {} +
