@@ -1,2 +1,3 @@
 _target_: relezoo.environments.GymWrapper
-name: "CartPole-v0"
+name: "Pendulum-v1"
+g: 9.81

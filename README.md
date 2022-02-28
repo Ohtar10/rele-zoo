@@ -76,3 +76,6 @@ For convenience, there is an iphyton shell wrapper where you can run Ad-Hoc expe
 ```bash
 relezoo shell
 ```
+
+## References
+- [OpenAI Spinning Up](https://spinningup.openai.com/en/latest/user/introduction.html)

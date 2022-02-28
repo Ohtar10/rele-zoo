@@ -3,11 +3,13 @@ channels:
   - pytorch
   - defaults
 dependencies:
-  - python=3.8
-  - pytorch>=1.8.0
+  - python=3.9
+  - pip
+  - cudatoolkit=11.3.1
+  - pytorch=1.10.2
   - tensorboardX
   - tensorboard
-  - pip
+  - swig
   - pip:
       - pytest
       - mock
@@ -19,6 +21,8 @@ dependencies:
       - mypy
       - ipython==7.26.0
       - click==8.0.1
+      - box2d==2.3.10
+      - box2d-py==2.3.8
       - gym==0.21.0
       - pyglet==1.5.21
       - moviepy==1.0.3
