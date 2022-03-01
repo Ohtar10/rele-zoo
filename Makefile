@@ -9,13 +9,13 @@ CONDA_ENV_NAME=rele-zoo
 PROJECT_PATH=relezoo
 
 install-env:
-	conda env create -f environment.yml
+	conda env create -f environment.yaml
 
 install:
 	pip install -e .
 
 update-env:
-	conda env update -n rele-zoo -f environment.yml
+	conda env update -n rele-zoo -f environment.yaml
 
 
 clean: clean-pyc clean-test clean-misc
