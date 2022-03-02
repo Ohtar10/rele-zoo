@@ -29,6 +29,7 @@ clean-misc:
 	rm -rf relezoo.egg-info || true
 	rm -rf .pytest_cache || true
 	rm -rf tensorboard || true
+	rm -rf checkpoints || true
 
 clean-pyc: ## remove Python file artifacts
 	find . -name '*.pyc' -exec rm -f {} +

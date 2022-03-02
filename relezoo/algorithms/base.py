@@ -37,3 +37,7 @@ class Policy(ABC):
     @abstractmethod
     def learn(self, batch_obs: torch.Tensor, batch_actions: torch.Tensor, batch_weights: torch.Tensor):
         pass
+
+    @abstractmethod
+    def save(self, save_path):
+        pass

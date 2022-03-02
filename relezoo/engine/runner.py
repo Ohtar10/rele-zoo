@@ -1,11 +1,11 @@
 import os
+from pathlib import Path
 from typing import Any
 
-from gym import Env
 from hydra.utils import instantiate
 from omegaconf import DictConfig
 
-from relezoo.environments import GymWrapper
+from relezoo.environments.base import Environment
 
 
 class Runner:
@@ -31,11 +31,10 @@ class Runner:
         per hydra configuration.
         """
         self.cfg = cfg
-        self.environment: GymWrapper = instantiate(cfg.environment)
+        self.environment: Environment = instantiate(cfg.environment)
         self.logger = instantiate(cfg.logger,
                                   logdir=os.path.join(self.workdir, cfg.logger.logdir)
                                   )
-        self.environment: GymWrapper = instantiate(cfg.environment)
 
         if self.cfg.network.infer_in_shape:
             # TODO this is not scalable. Expects specifics from the config
@@ -44,11 +43,10 @@ class Runner:
 
         if self.cfg.network.infer_out_shape:
             # TODO this is not scalable. Expects specifics from the config
-            out_shape = self.environment.get_action_space().n
+            out_shape = self.environment.get_action_space()[0]
             self.cfg.algorithm.policy.network.out_shape = out_shape
 
-        env: Env = self.environment.build_env()
-        self.algorithm = instantiate(self.cfg.algorithm, env=env, logger=self.logger)
+        self.algorithm = instantiate(self.cfg.algorithm, env=self.environment, logger=self.logger)
 
     def run(self):
         """run.
@@ -56,8 +54,11 @@ class Runner:
         configuration mode.
         """
         if "train" == self.cfg.mode:
-            self.algorithm.train(self.cfg.episodes)
+            os.makedirs(Path(self.cfg.checkpoints), exist_ok=True)
+            self.algorithm.train(self.cfg.episodes, self.cfg.render)
+            self.algorithm.save(os.path.join(self.workdir, self.cfg.checkpoints))
         elif "play" == self.cfg.mode:
-            self.algorithm.play(self.cfg.episodes)
+            self.algorithm.load(self.cfg.checkpoints)
+            self.algorithm.play(self.cfg.episodes, self.cfg.render)
 
 

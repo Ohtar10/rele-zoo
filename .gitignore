@@ -134,3 +134,4 @@ flake8.txt
 report.xml
 outputs/
 tensorboard/
+checkpoints/

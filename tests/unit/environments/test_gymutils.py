@@ -13,7 +13,7 @@ from relezoo.environments import GymWrapper
 ])
 def test_build_discrete_action_envs(env_name):
     builder = GymWrapper(env_name)
-    env = builder.build_env()
+    env = builder.build_environment()
     assert isinstance(env, gym.Env)
 
 
@@ -24,7 +24,7 @@ def test_build_discrete_action_envs(env_name):
 ])
 def test_build_continuous_action_envs(env_name):
     builder = GymWrapper(env_name)
-    env = builder.build_env()
+    env = builder.build_environment()
     assert isinstance(env, gym.Env)
 
 
@@ -35,7 +35,7 @@ def test_build_continuous_action_envs(env_name):
 ])
 def test_build_environments_with_parameters(env_name, params):
     builder = GymWrapper(env_name, **params)
-    env = builder.build_env()
+    env = builder.build_environment()
     assert isinstance(env, gym.Env)
     for k, v in params.items():
         assert hasattr(env.env, k)

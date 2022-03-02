@@ -71,6 +71,12 @@ like this:
 ```bash
 relezoo-run environment.name=Acrobot-v1
 ```
+By default, `relezoo-run` runs in train mode, to run in test mode, specify the property and the path to the checkpoints
+as per chosen algorithm
+```bash
+relezoo-run environment=pendulum episodes=5 algorithm=reinforce-continuous mode=play checkpoints=../2022-03-02_16-43-18/checkpoints/ReinforceContinuousPolicy.cpt
+```
+
 ### Shell
 For convenience, there is an iphyton shell wrapper where you can run Ad-Hoc experiments directly.
 ```bash

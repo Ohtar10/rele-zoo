@@ -1,7 +1,11 @@
+from typing import Any
+
 import torch.nn as nn
 
+from relezoo.networks.base import Network
 
-class SimpleFC(nn.Module):
+
+class SimpleFC(Network):
     """SimpleFC.
 
     This is a simple & static fully
@@ -13,6 +17,8 @@ class SimpleFC(nn.Module):
     """
     def __init__(self, in_shape: int = 64, out_shape: int = 2):
         super().__init__()
+        self.in_shape = in_shape
+        self.out_shape = out_shape
         self.net = nn.Sequential(
             nn.Linear(in_shape, 64),
             nn.Linear(64, 128),
@@ -24,4 +30,10 @@ class SimpleFC(nn.Module):
 
     def forward(self, x):
         return self.net(x)
+
+    def get_input_shape(self) -> Any:
+        return self.in_shape
+
+    def get_output_shape(self) -> Any:
+        return self.out_shape
 

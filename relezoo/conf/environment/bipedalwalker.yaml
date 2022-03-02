@@ -1,0 +1,2 @@
+_target_: relezoo.environments.GymWrapper
+name: "BipedalWalker-v3"

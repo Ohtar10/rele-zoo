@@ -1,0 +1,3 @@
+_target_: relezoo.algorithms.reinforce.continuous.ReinforceContinuousPolicy
+defaults:
+  - network: simple-fc

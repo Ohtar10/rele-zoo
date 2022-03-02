@@ -1,25 +1,23 @@
-import pytest
-import gym
-import torch.nn as nn
 import mock
+import pytest
+
 from relezoo.algorithms.reinforce.discrete import ReinforceDiscrete, ReinforceDiscretePolicy
+from relezoo.environments import GymWrapper
+from relezoo.environments.base import Environment
+from tests.utils.netpol import build_net
 
 
-def build_net(env: gym.Env):
-    return nn.Sequential(
-        nn.Linear(env.observation_space.shape[0], 32),
-        nn.Tanh(),
-        nn.Linear(32, env.action_space.n)
-    )
-
-
-def build_policy(env: gym.Env, learning_rate: float = 1e-2):
-    return ReinforceDiscretePolicy(build_net(env), learning_rate)
+def build_policy(env: Environment, learning_rate: float = 1e-2):
+    in_shape = env.get_observation_space()[0]
+    out_shape = env.get_action_space()[0]
+    return ReinforceDiscretePolicy(
+        build_net(in_shape, out_shape),
+        learning_rate)
 
 
 @mock.patch("tensorboardX.SummaryWriter")
 def test_smoke_train_reinforce(mock_logger):
-    env = gym.make("CartPole-v0")
+    env = GymWrapper("CartPole-v0")
     policy = build_policy(env)
     algo = ReinforceDiscrete(env, policy, mock_logger)
     algo.train(epochs=5)
@@ -29,7 +27,7 @@ def test_smoke_train_reinforce(mock_logger):
 
 @mock.patch("tensorboardX.SummaryWriter")
 def test_smoke_play_reinforce(mock_logger):
-    env = gym.make("CartPole-v0")
+    env = GymWrapper("CartPole-v0")
     policy = build_policy(env)
     algo = ReinforceDiscrete(env, policy, mock_logger)
     algo.train(epochs=5)
@@ -45,7 +43,7 @@ def test_smoke_play_reinforce(mock_logger):
     "Acrobot-v1"
 ])
 def test_train_reinforce_environments(mock_logger, env_name: str):
-    env = gym.make(env_name)
+    env = GymWrapper(env_name)
     policy = build_policy(env)
     algo = ReinforceDiscrete(env, policy, mock_logger)
     algo.train(epochs=5)
