@@ -97,16 +97,19 @@ class ReinforceContinuous(Algorithm):
     Container class for all the necessary logic
     to train and use vanilla policy gradient aka REINFORCE
     with gym environments."""
-    def __init__(self, env: Environment, policy: Optional[ReinforceContinuousPolicy] = None,
+    def __init__(self, env: Environment,
+                 policy: Optional[ReinforceContinuousPolicy] = None,
+                 batch_size: int = 5000,
                  logger: Optional[SummaryWriter] = None):
         self.env = env
+        self.batch_size = batch_size
         self.obs_space = env.get_observation_space()[0]
         self.act_space = env.get_action_space()[0]
         self.policy = policy
         self.logger = logger
         self.train_steps = 0
 
-    def train(self, episodes: int = 50, batch_size: int = 5000, render: bool = False) -> None:
+    def train(self, episodes: int = 50, render: bool = False) -> None:
         """train
         The main training loop for the algorithm.
 
@@ -117,7 +120,7 @@ class ReinforceContinuous(Algorithm):
         with tqdm(total=episodes) as progress:
             for i in range(1, episodes + 1):
                 is_last_episode = i == episodes
-                batch_loss, batch_returns, batch_lens = self._train_epoch(batch_size, render, is_last_episode)
+                batch_loss, batch_returns, batch_lens = self._train_epoch(self.batch_size, render, is_last_episode)
                 progress.set_postfix({
                     "loss": f"{batch_loss:.2f}",
                     "score": f"{np.mean(batch_returns):.2f}",

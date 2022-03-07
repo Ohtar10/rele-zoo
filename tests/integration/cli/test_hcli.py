@@ -24,7 +24,7 @@ def test_reinforce_discrete() -> None:
         cfg = compose(config_name="config")
         try:
             # test for only three episodes instead of the default
-            cfg.episodes = 3
+            cfg.episodes = 5
             hcli.hrelezoo(cfg)
             checkpoints = os.path.join(os.getcwd(), cfg.checkpoints)
             expected_cp = os.path.join(checkpoints, f"{ReinforceDiscretePolicy.__name__}.cpt")

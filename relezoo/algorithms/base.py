@@ -9,7 +9,7 @@ class Algorithm(ABC):
     Represents an RL algorithm to solve a task.
     """
     @abstractmethod
-    def train(self, episodes: int, batch_size: int, render: bool) -> None:
+    def train(self, episodes: int, render: bool) -> None:
         pass
 
     @abstractmethod

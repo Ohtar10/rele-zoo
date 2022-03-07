@@ -1,3 +1,4 @@
 _target_: relezoo.algorithms.reinforce.discrete.ReinforceDiscrete
 defaults:
   - policy: simple-discrete
+batch_size: 5000
