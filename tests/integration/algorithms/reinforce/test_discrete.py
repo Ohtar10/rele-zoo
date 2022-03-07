@@ -19,7 +19,7 @@ def build_policy(env: Environment, learning_rate: float = 1e-2):
 def test_smoke_train_reinforce(mock_logger):
     env = GymWrapper("CartPole-v0")
     policy = build_policy(env)
-    algo = ReinforceDiscrete(env, policy, mock_logger)
+    algo = ReinforceDiscrete(env, policy=policy, logger=mock_logger)
     algo.train(epochs=5)
     assert mock_logger.add_scalar.call_count == 5 * 3  # 5 epochs * 3 metrics
     assert mock_logger.add_video.call_count == 2  # once in the beginning and once in the end
@@ -29,7 +29,7 @@ def test_smoke_train_reinforce(mock_logger):
 def test_smoke_play_reinforce(mock_logger):
     env = GymWrapper("CartPole-v0")
     policy = build_policy(env)
-    algo = ReinforceDiscrete(env, policy, mock_logger)
+    algo = ReinforceDiscrete(env, policy=policy, logger=mock_logger)
     algo.train(epochs=5)
     assert mock_logger.add_scalar.call_count == 5 * 3  # 5 epochs * 3 metrics
     assert mock_logger.add_video.call_count == 2  # once in the beginning and once in the end
@@ -45,7 +45,7 @@ def test_smoke_play_reinforce(mock_logger):
 def test_train_reinforce_environments(mock_logger, env_name: str):
     env = GymWrapper(env_name)
     policy = build_policy(env)
-    algo = ReinforceDiscrete(env, policy, mock_logger)
+    algo = ReinforceDiscrete(env, policy=policy, logger=mock_logger)
     algo.train(epochs=5)
     assert mock_logger.add_scalar.call_count == 5 * 3  # 5 epochs * 3 metrics
     assert mock_logger.add_video.call_count == 2  # once in the beginning and once in the end

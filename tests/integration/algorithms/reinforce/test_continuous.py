@@ -18,7 +18,7 @@ def build_policy(env: GymWrapper, learning_rate: float = 1e-2):
 def test_smoke_train_reinforce(mock_logger):
     env = GymWrapper("Pendulum-v1")
     policy = build_policy(env)
-    algo = ReinforceContinuous(env, policy, mock_logger)
+    algo = ReinforceContinuous(env, policy=policy, logger=mock_logger)
     algo.train(episodes=5)
     assert mock_logger.add_scalar.call_count == 5 * 3
     assert mock_logger.add_video.call_count == 2

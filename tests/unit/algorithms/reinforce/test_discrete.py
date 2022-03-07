@@ -11,7 +11,7 @@ from relezoo.algorithms.reinforce.discrete import ReinforceDiscrete, ReinforceDi
 @mock.patch("gym.Env")
 @mock.patch("relezoo.algorithms.reinforce.discrete.ReinforceDiscretePolicy")
 def test_reinforce_train(mock_policy, mock_env, mock_logger):
-    algo = ReinforceDiscrete(mock_env, mock_policy, mock_logger)
+    algo = ReinforceDiscrete(mock_env, policy=mock_policy, logger=mock_logger)
     algo._train_epoch = mock.MagicMock(return_value=(0.1, np.array([1, 2]), np.array([1, 2])))
     algo.train(5)
     assert algo._train_epoch.call_count == 5
