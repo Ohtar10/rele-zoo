@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 
 from relezoo.algorithms.reinforce.continuous import ReinforceContinuous, ReinforceContinuousPolicy
+from tests.utils.common import MAX_TEST_EPISODES
 
 
 @mock.patch("tensorboardX.SummaryWriter")
@@ -13,9 +14,9 @@ from relezoo.algorithms.reinforce.continuous import ReinforceContinuous, Reinfor
 def test_reinforce_train(mock_policy, mock_env, mock_logger):
     algo = ReinforceContinuous(mock_env, policy=mock_policy, logger=mock_logger)
     algo._train_epoch = mock.MagicMock(return_value=(0.1, np.array([1, 2]), np.array([1, 2])))
-    algo.train(5)
-    assert algo._train_epoch.call_count == 5
-    assert mock_logger.flush.call_count == 5
+    algo.train(MAX_TEST_EPISODES)
+    assert algo._train_epoch.call_count == MAX_TEST_EPISODES
+    assert mock_logger.flush.call_count == MAX_TEST_EPISODES
     mock_logger.close.assert_called_once()
 
 

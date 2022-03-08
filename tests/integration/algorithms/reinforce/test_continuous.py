@@ -2,6 +2,7 @@ import mock
 
 from relezoo.algorithms.reinforce.continuous import ReinforceContinuousPolicy, ReinforceContinuous
 from relezoo.environments import GymWrapper
+from tests.utils.common import MAX_TEST_EPISODES
 from tests.utils.netpol import build_net
 
 
@@ -18,8 +19,8 @@ def test_smoke_train_reinforce(mock_logger):
     env = GymWrapper("Pendulum-v1")
     policy = build_policy(env)
     algo = ReinforceContinuous(env, policy=policy, logger=mock_logger)
-    algo.train(episodes=5)
-    assert mock_logger.add_scalar.call_count == 5 * 3
+    algo.train(episodes=MAX_TEST_EPISODES)
+    assert mock_logger.add_scalar.call_count == MAX_TEST_EPISODES * 3
     assert mock_logger.add_video.call_count == 2
 
 
@@ -28,7 +29,7 @@ def test_smoke_play_reinforce(mock_logger):
     env = GymWrapper("Pendulum-v1")
     policy = build_policy(env)
     algo = ReinforceContinuous(env, policy=policy, logger=mock_logger)
-    rewards, lengths = algo.play(episodes=5)
+    rewards, lengths = algo.play(episodes=MAX_TEST_EPISODES)
     assert isinstance(rewards, float)
     assert isinstance(lengths, float)
     assert rewards != 0.0

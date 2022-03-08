@@ -1,10 +1,10 @@
 import mock
-import numpy as np
 import pytest
 
 from relezoo.algorithms.reinforce.discrete import ReinforceDiscrete, ReinforceDiscretePolicy
 from relezoo.environments import GymWrapper
 from relezoo.environments.base import Environment
+from tests.utils.common import MAX_TEST_EPISODES
 from tests.utils.netpol import build_net
 
 
@@ -21,8 +21,8 @@ def test_smoke_train_reinforce(mock_logger):
     env = GymWrapper("CartPole-v0")
     policy = build_policy(env)
     algo = ReinforceDiscrete(env, policy=policy, logger=mock_logger)
-    algo.train(epochs=5)
-    assert mock_logger.add_scalar.call_count == 5 * 3  # 5 epochs * 3 metrics
+    algo.train(epochs=MAX_TEST_EPISODES)
+    assert mock_logger.add_scalar.call_count == MAX_TEST_EPISODES * 3  # n epochs * 3 metrics
     assert mock_logger.add_video.call_count == 2  # once in the beginning and once in the end
 
 
@@ -31,7 +31,7 @@ def test_smoke_play_reinforce(mock_logger):
     env = GymWrapper("CartPole-v0")
     policy = build_policy(env)
     algo = ReinforceDiscrete(env, policy=policy, logger=mock_logger)
-    rewards, lengths = algo.play(episodes=5)
+    rewards, lengths = algo.play(episodes=MAX_TEST_EPISODES)
     assert isinstance(rewards, float)
     assert isinstance(lengths, float)
     assert rewards > 0.0
@@ -49,7 +49,7 @@ def test_train_reinforce_environments(mock_logger, env_name: str):
     env = GymWrapper(env_name)
     policy = build_policy(env)
     algo = ReinforceDiscrete(env, policy=policy, logger=mock_logger)
-    algo.train(epochs=5)
-    assert mock_logger.add_scalar.call_count == 5 * 3  # 5 epochs * 3 metrics
+    algo.train(epochs=MAX_TEST_EPISODES)
+    assert mock_logger.add_scalar.call_count == MAX_TEST_EPISODES * 3  # n epochs * 3 metrics
     assert mock_logger.add_video.call_count == 2  # once in the beginning and once in the end
 
