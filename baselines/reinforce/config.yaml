@@ -1,0 +1,23 @@
+experiment_name: Relezoo
+mode: train
+render: true
+checkpoints: checkpoints/
+episodes: 50
+network:
+  infer_in_shape: true
+  infer_out_shape: true
+environment:
+  _target_: relezoo.environments.GymWrapper
+  name: CartPole-v1
+algorithm:
+  policy:
+    network:
+      _target_: relezoo.networks.simple.SimpleFC
+      in_shape: infer
+      out_shape: infer
+    _target_: relezoo.algorithms.reinforce.discrete.ReinforceDiscretePolicy
+  _target_: relezoo.algorithms.reinforce.discrete.ReinforceDiscrete
+  batch_size: 5000
+logger:
+  _target_: tensorboardX.SummaryWriter
+  logdir: tensorboard

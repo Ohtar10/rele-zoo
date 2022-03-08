@@ -1,4 +1,3 @@
-import gym
 import mock
 
 from relezoo.algorithms.reinforce.continuous import ReinforceContinuousPolicy, ReinforceContinuous
@@ -22,4 +21,16 @@ def test_smoke_train_reinforce(mock_logger):
     algo.train(episodes=5)
     assert mock_logger.add_scalar.call_count == 5 * 3
     assert mock_logger.add_video.call_count == 2
+
+
+@mock.patch("tensorboardX.SummaryWriter")
+def test_smoke_play_reinforce(mock_logger):
+    env = GymWrapper("Pendulum-v1")
+    policy = build_policy(env)
+    algo = ReinforceContinuous(env, policy=policy, logger=mock_logger)
+    rewards, lengths = algo.play(episodes=5)
+    assert isinstance(rewards, float)
+    assert isinstance(lengths, float)
+    assert rewards != 0.0
+    assert lengths > 0.0
 
