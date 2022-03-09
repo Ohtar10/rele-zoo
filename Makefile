@@ -51,6 +51,15 @@ lint:
 test:
 	($(CONDA_ACTIVATE) ${CONDA_ENV_NAME}; pytest --junitxml=report.xml -v -s --cov=${PROJECT_PATH} tests; coverage xml)
 
+test-unit:
+	($(CONDA_ACTIVATE) ${CONDA_ENV_NAME}; pytest -m unit --junitxml=report.xml -v -s tests; coverage xml)
+
+test-integration:
+	($(CONDA_ACTIVATE) ${CONDA_ENV_NAME}; pytest -m integration --junitxml=report.xml -v -s tests; coverage xml)
+
+test-cli:
+	($(CONDA_ACTIVATE) ${CONDA_ENV_NAME}; pytest -m cli --junitxml=report.xml -v -s tests; coverage xml)
+
 benchmark:
 	($(CONDA_ACTIVATE) ${CONDA_ENV_NAME}; pytest -v -s -m benchmark tests || true )
 

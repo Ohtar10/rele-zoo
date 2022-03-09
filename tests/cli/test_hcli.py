@@ -1,8 +1,10 @@
+import pytest
 from hydra import initialize, compose
 
 
+@pytest.mark.cli
 def test_cli_composition_smoke() -> None:
-    with initialize(config_path="../../../relezoo/conf"):
+    with initialize(config_path="../../relezoo/conf"):
         # config is relative to a module
         cfg = compose(config_name="config")
         assert cfg is not None
