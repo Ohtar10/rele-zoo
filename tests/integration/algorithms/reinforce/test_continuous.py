@@ -23,7 +23,6 @@ class TestReinforceContinuousInt:
         algo = ReinforceContinuous(env, policy=policy, logger=mock_logger)
         algo.train(episodes=MAX_TEST_EPISODES)
         assert mock_logger.add_scalar.call_count == MAX_TEST_EPISODES * 3
-        assert mock_logger.add_video.call_count == 2
 
     @mock.patch("tensorboardX.SummaryWriter")
     def test_smoke_play_reinforce(self, mock_logger):

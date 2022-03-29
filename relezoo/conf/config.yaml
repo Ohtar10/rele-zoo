@@ -7,7 +7,7 @@ defaults:
 
 experiment_name: Relezoo
 mode: train
-render: True
+render: False
 checkpoints: checkpoints/
 episodes: 50
 network:

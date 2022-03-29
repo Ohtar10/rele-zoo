@@ -26,7 +26,6 @@ class TestReinforceDiscreteInt:
         algo = ReinforceDiscrete(env, policy=policy, logger=mock_logger)
         algo.train(epochs=MAX_TEST_EPISODES)
         assert mock_logger.add_scalar.call_count == MAX_TEST_EPISODES * 3  # n epochs * 3 metrics
-        assert mock_logger.add_video.call_count == 2  # once in the beginning and once in the end
 
     @mock.patch("tensorboardX.SummaryWriter")
     def test_smoke_play_reinforce(self, mock_logger):
@@ -52,4 +51,3 @@ class TestReinforceDiscreteInt:
         algo = ReinforceDiscrete(env, policy=policy, logger=mock_logger)
         algo.train(epochs=MAX_TEST_EPISODES)
         assert mock_logger.add_scalar.call_count == MAX_TEST_EPISODES * 3  # n epochs * 3 metrics
-        assert mock_logger.add_video.call_count == 2  # once in the beginning and once in the end

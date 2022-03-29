@@ -3,13 +3,13 @@ from typing import Optional
 
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
 
 from relezoo.algorithms.base import Policy, Algorithm
 from relezoo.environments.base import Environment
+from relezoo.networks.base import Network
 from relezoo.utils.network import NetworkMode
 
 
@@ -27,8 +27,15 @@ class ReinforceDiscretePolicy(Policy):
     discrete action spaces.
     """
 
-    def __init__(self, network: nn.Module, learning_rate: float = 1e-2):
+    def __init__(self, network: Network,
+                 learning_rate: float = 1e-2,
+                 eps_start: float = 0.0,
+                 eps_min: float = 0.0,
+                 eps_decay: float = 0.99):
         self.net = network
+        self.eps = eps_start
+        self.eps_min = eps_min
+        self.eps_decay = eps_decay
         self.optimizer = optim.Adam(self.net.parameters(), learning_rate)
 
     def set_mode(self, mode: NetworkMode):
@@ -43,9 +50,14 @@ class ReinforceDiscretePolicy(Policy):
         The action will be sampled from a categorical
         distribution considering the logits outputs from
         the underlying neural network."""
-        logits = self._get_policy(obs)
-        action = logits.sample().item()
-        return action
+        if 0.0 < self.eps < np.random.random():
+            self.eps = max(self.eps_min, self.eps * self.eps_decay)
+            out_features = self.net.get_output_shape()
+            return np.random.randint(0, out_features)
+        else:
+            logits = self._get_policy(obs)
+            action = logits.sample().item()
+            return action
 
     def _get_policy(self, obs: torch.Tensor):
         logits = self.net(obs)
@@ -144,7 +156,7 @@ class ReinforceDiscrete(Algorithm):
             if render and not render_epoch:
                 self.env.render()
 
-            if not render_epoch:
+            if render and not render_epoch:
                 render_frames.append(self.env.render(mode='rgb_array'))
 
             batch_obs.append(obs.copy())

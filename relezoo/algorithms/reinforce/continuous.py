@@ -1,6 +1,6 @@
-from typing import Optional
-
 import os
+from typing import Optional, Dict, Any
+
 import numpy as np
 import torch
 import torch.optim as optim
@@ -11,6 +11,7 @@ from relezoo.algorithms.base import Policy, Algorithm
 from relezoo.environments.base import Environment
 from relezoo.networks.base import Network
 from relezoo.utils.network import NetworkMode
+from relezoo.utils.noise import make_noise
 
 
 class ReinforceContinuousPolicy(Policy):
@@ -29,7 +30,10 @@ class ReinforceContinuousPolicy(Policy):
     will be sampled.
     """
 
-    def __init__(self, network: Network, learning_rate: float = 1e-2):
+    def __init__(self,
+                 network: Network,
+                 learning_rate: float = 1e-2,
+                 noise: Optional[Dict[str, Any]] = None):
         self.net = network
         self.optimizer = optim.Adam(self.net.parameters(), learning_rate)
         self.out_shape = network.get_output_shape()
@@ -37,6 +41,16 @@ class ReinforceContinuousPolicy(Policy):
         # By subscribing the log_std as a parameter, it will receive
         # Gradient updates during the backward pass
         self.log_std = torch.nn.Parameter(torch.as_tensor(log_std))
+        self.noise = None
+        if noise is not None:
+            self._build_noise(noise)
+
+    def _build_noise(self, noise: Dict[str, Any]):
+        name = noise['name']
+        params = noise['params']
+        if 'size' in params.keys():
+            params['size'] = self.out_shape
+        self.noise = make_noise(name, params)
 
     def set_mode(self, mode: NetworkMode):
         if mode == NetworkMode.TRAIN:
@@ -56,7 +70,10 @@ class ReinforceContinuousPolicy(Policy):
         distribution considering mu and std output
         from the underlying neural network."""
         distribution = self._get_policy(obs)
-        action = distribution.sample().item()
+        action = distribution.sample().cpu().numpy()
+
+        if self.noise is not None:
+            return action + self.noise.sample()
         return action
 
     def learn(self, batch_obs: torch.Tensor, batch_actions: torch.Tensor, batch_weights: torch.Tensor):
@@ -151,13 +168,13 @@ class ReinforceContinuous(Algorithm):
             if render and not render_episode:
                 self.env.render()
 
-            if not render_episode:
+            if render and not render_episode:
                 render_frames.append(self.env.render(mode='rgb_array'))
 
             batch_obs.append(obs.copy())
 
             action = self.policy.act(torch.from_numpy(obs))
-            obs, reward, done, _ = self.env.step([action])
+            obs, reward, done, _ = self.env.step(action)
             batch_actions.append(action)
             episode_rewards.append(reward)
 
@@ -233,7 +250,7 @@ class ReinforceContinuous(Algorithm):
                         self.env.render()
 
                     action = self.policy.act(torch.from_numpy(obs))
-                    obs, reward, done, _ = self.env.step([action])
+                    obs, reward, done, _ = self.env.step(action)
                     ep_reward += reward
                     if done:
                         break
