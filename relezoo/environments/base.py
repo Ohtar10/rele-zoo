@@ -1,6 +1,6 @@
 import abc
 from abc import abstractmethod
-from typing import Any, Optional
+from typing import Any, Optional, Union, Tuple
 import numpy as np
 
 
@@ -11,11 +11,11 @@ class Environment(abc.ABC):
         pass
 
     @abstractmethod
-    def get_observation_space(self) -> np.ndarray:
+    def get_observation_space(self) -> Union[np.ndarray, Tuple[int]]:
         pass
 
     @abstractmethod
-    def get_action_space(self) -> np.ndarray:
+    def get_action_space(self) -> Union[np.ndarray, Tuple[int]]:
         pass
 
     @abstractmethod
@@ -29,3 +29,4 @@ class Environment(abc.ABC):
     @abstractmethod
     def render(self, mode: Optional[str] = None) -> Any:
         pass
+

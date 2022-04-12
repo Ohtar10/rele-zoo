@@ -5,6 +5,10 @@ defaults:
   - logger: tensorboard
   - override hydra/help: relezoo-help
 
+##########################
+## Experiment wise vars ##
+##########################
+
 experiment_name: Relezoo
 mode: train
 render: False
@@ -14,7 +18,14 @@ network:
   infer_in_shape: True
   infer_out_shape: True
 
-#####################
+
+##########################
+### Runtime wise vars ####
+##########################
+ray_cpus: 4
+#4GB in bytes
+ray_memory: 4294967296
+ray_dashboard_port: 8265
 
 hydra:
   run:

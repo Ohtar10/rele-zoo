@@ -29,3 +29,4 @@ dependencies:
       - moviepy==1.0.3
       - tqdm==4.62.3
       - hydra-core==1.1.1
+      - ray[default]

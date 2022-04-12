@@ -13,6 +13,7 @@ class GymWrapper(Environment):
     of gym environments and acts as a
     builder and meta-data store.
     """
+
     def __init__(self, name: str, **kwargs):
         self.name = name
         self.params = kwargs
@@ -43,6 +44,5 @@ class GymWrapper(Environment):
             return self.__env.render(mode)
         else:
             return self.__env.render()
-
 
 
