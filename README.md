@@ -26,10 +26,10 @@ relezoo-run --help
 == Configuration groups ==
 Compose your configuration from those groups (algorithm=reinforce)
 
-algorithm: reinforce-discrete
-algorithm/policy: simple
+algorithm: reinforce-continuous, reinforce-discrete
+algorithm/policy: simple-continuous, simple-discrete
 algorithm/policy/network: simple-fc
-environment: cartpole
+environments: acrobot, bipedalwalker, cartpole, mountaincar, parallel-cartpole, pendulum
 logger: tensorboard
 
 
@@ -40,14 +40,21 @@ relezoo algorithm.mode=play environment.name=Acrobot-v1
 -------
 experiment_name: Relezoo
 mode: train
+render: false
+checkpoints: checkpoints/
 episodes: 50
 network:
   infer_in_shape: true
   infer_out_shape: true
-environment:
+ray_cpus: 4
+ray_memory: 4294967296
+ray_dashboard_port: 8265
+env_train:
   _target_: relezoo.environments.GymWrapper
-  alias: cartpole
-  name: CartPole-v0
+  name: CartPole-v1
+env_test:
+  _target_: relezoo.environments.GymWrapper
+  name: CartPole-v1
 algorithm:
   policy:
     network:
@@ -55,12 +62,18 @@ algorithm:
       in_shape: infer
       out_shape: infer
     _target_: relezoo.algorithms.reinforce.discrete.ReinforceDiscretePolicy
+    learning_rate: 0.01
+    eps_start: 0.0
+    eps_min: 0.0
+    eps_decay: 0.0
   _target_: relezoo.algorithms.reinforce.discrete.ReinforceDiscrete
+  batch_size: 5000
 logger:
   _target_: tensorboardX.SummaryWriter
   logdir: tensorboard
 
 -------
+
 
 ...
 ```
@@ -69,7 +82,7 @@ Gym cartpole environment and generate some tensorflow logs in the generated `out
 configuration parameter shown above, for example, to run against `Acrobot-v1` environment instead, just run the tool
 like this:
 ```bash
-relezoo-run environment.name=Acrobot-v1
+relezoo-run environments@env_train=acrobot
 ```
 By default, `relezoo-run` runs in train mode, to run in test mode, specify the property and the path to the checkpoints
 as per chosen algorithm

@@ -8,7 +8,8 @@ def test_cli_composition_smoke() -> None:
         # config is relative to a module
         cfg = compose(config_name="config")
         assert cfg is not None
-        assert "environment" in cfg
+        assert "env_train" in cfg
+        assert "env_test" in cfg
         assert "algorithm" in cfg
         assert "network" in cfg
         assert "logger" in cfg

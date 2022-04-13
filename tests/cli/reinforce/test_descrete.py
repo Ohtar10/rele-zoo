@@ -34,7 +34,8 @@ class TestReinforceDiscreteCli:
         with initialize_config_module(config_module="relezoo.conf"):
             cfg = compose(config_name="config",
                           overrides=[
-                              f"environment={environment}"
+                              f"environments@env_train={environment}",
+                              f"environments@env_test={environment}"
                           ]
                           )
             try:

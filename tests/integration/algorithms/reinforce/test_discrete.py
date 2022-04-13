@@ -9,8 +9,8 @@ from tests.utils.netpol import build_net
 
 
 def build_policy(env: Environment, learning_rate: float = 1e-2):
-    in_shape = env.get_observation_space()[0]
-    out_shape = env.get_action_space()[0]
+    in_shape = env.get_observation_space()[1]
+    out_shape = env.get_action_space()[1]
     return ReinforceDiscretePolicy(
         build_net(in_shape, out_shape),
         learning_rate)
@@ -23,16 +23,16 @@ class TestReinforceDiscreteInt:
     def test_smoke_train_reinforce(self, mock_logger):
         env = GymWrapper("CartPole-v0")
         policy = build_policy(env)
-        algo = ReinforceDiscrete(env, policy=policy, logger=mock_logger)
-        algo.train(epochs=MAX_TEST_EPISODES)
+        algo = ReinforceDiscrete(policy=policy, logger=mock_logger)
+        algo.train(env, epochs=MAX_TEST_EPISODES)
         assert mock_logger.add_scalar.call_count == MAX_TEST_EPISODES * 3  # n epochs * 3 metrics
 
     @mock.patch("tensorboardX.SummaryWriter")
     def test_smoke_play_reinforce(self, mock_logger):
         env = GymWrapper("CartPole-v0")
         policy = build_policy(env)
-        algo = ReinforceDiscrete(env, policy=policy, logger=mock_logger)
-        rewards, lengths = algo.play(episodes=MAX_TEST_EPISODES)
+        algo = ReinforceDiscrete(policy=policy, logger=mock_logger)
+        rewards, lengths = algo.play(env, episodes=MAX_TEST_EPISODES)
         assert isinstance(rewards, float)
         assert isinstance(lengths, float)
         assert rewards > 0.0
@@ -48,6 +48,6 @@ class TestReinforceDiscreteInt:
     def test_train_reinforce_environments(self, mock_logger, env_name: str):
         env = GymWrapper(env_name)
         policy = build_policy(env)
-        algo = ReinforceDiscrete(env, policy=policy, logger=mock_logger)
-        algo.train(epochs=MAX_TEST_EPISODES)
+        algo = ReinforceDiscrete(policy=policy, logger=mock_logger)
+        algo.train(env, epochs=MAX_TEST_EPISODES)
         assert mock_logger.add_scalar.call_count == MAX_TEST_EPISODES * 3  # n epochs * 3 metrics

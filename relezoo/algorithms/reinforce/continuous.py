@@ -114,19 +114,18 @@ class ReinforceContinuous(Algorithm):
     Container class for all the necessary logic
     to train and use vanilla policy gradient aka REINFORCE
     with gym environments."""
-    def __init__(self, env: Environment,
+    def __init__(self,
                  policy: Optional[ReinforceContinuousPolicy] = None,
                  batch_size: int = 5000,
-                 logger: Optional[SummaryWriter] = None):
-        self.env = env
+                 logger: Optional[SummaryWriter] = None,
+                 play_env: Optional[Environment] = None):
         self.batch_size = batch_size
-        self.obs_space = env.get_observation_space()[0]
-        self.act_space = env.get_action_space()[0]
         self.policy = policy
         self.logger = logger
         self.train_steps = 0
+        self.play_env = play_env
 
-    def train(self, episodes: int = 50, render: bool = False) -> None:
+    def train(self, env: Environment, episodes: int = 50, render: bool = False) -> None:
         """train
         The main training loop for the algorithm.
 
@@ -137,7 +136,7 @@ class ReinforceContinuous(Algorithm):
         with tqdm(total=episodes) as progress:
             for i in range(1, episodes + 1):
                 is_last_episode = i == episodes
-                batch_loss, batch_returns, batch_lens = self._train_epoch(self.batch_size, render, is_last_episode)
+                batch_loss, batch_returns, batch_lens = self._train_epoch(env, self.batch_size, render, is_last_episode)
                 progress.set_postfix({
                     "loss": f"{batch_loss:.2f}",
                     "score": f"{np.mean(batch_returns):.2f}",
@@ -150,6 +149,7 @@ class ReinforceContinuous(Algorithm):
             self.logger.close()
 
     def _train_epoch(self,
+                     env: Environment,
                      batch_size: int = 5000,
                      render: bool = False,
                      is_last_episode: bool = False) -> (float, float, int):
@@ -159,22 +159,22 @@ class ReinforceContinuous(Algorithm):
         batch_returns = []
         batch_lens = []
 
-        obs = self.env.reset()
+        obs = env.reset()
         episode_rewards = []
         render_episode = False
         render_frames = []
 
         while True:
             if render and not render_episode:
-                self.env.render()
+                env.render()
 
             if render and not render_episode:
-                render_frames.append(self.env.render(mode='rgb_array'))
+                render_frames.append(env.render(mode='rgb_array'))
 
             batch_obs.append(obs.copy())
 
             action = self.policy.act(torch.from_numpy(obs))
-            obs, reward, done, _ = self.env.step(action)
+            obs, reward, done, _ = env.step(action)
             batch_actions.append(action)
             episode_rewards.append(reward)
 
@@ -185,7 +185,7 @@ class ReinforceContinuous(Algorithm):
 
                 batch_weights += [episode_return] * episode_length
 
-                obs, done, episode_rewards = self.env.reset(), False, []
+                obs, done, episode_rewards = env.reset(), False, []
 
                 render_episode = True
 
@@ -230,9 +230,9 @@ class ReinforceContinuous(Algorithm):
             tag = 'end-training' if is_last_episode else 'training'
             self.logger.add_video(tag, vid_tensor=sequence, global_step=self.train_steps, fps=8)
 
-    def play(self, episodes: int, render: bool = False) -> (float, int):
+    def play(self, env: Environment, episodes: int, render: bool = False) -> (float, int):
         """play.
-        Play the environment using the current
+        Play the environments using the current
         policy, without learning, for as many
         episodes as requested.
         """
@@ -242,15 +242,15 @@ class ReinforceContinuous(Algorithm):
             ep_rewards = []
             ep_lengths = []
             for i in range(1, episodes + 1):
-                obs = self.env.reset()
+                obs = env.reset()
                 ep_length = 1
                 ep_reward = 0
                 while True:
                     if render:
-                        self.env.render()
+                        env.render()
 
                     action = self.policy.act(torch.from_numpy(obs))
-                    obs, reward, done, _ = self.env.step(action)
+                    obs, reward, done, _ = env.step(action)
                     ep_reward += reward
                     if done:
                         break

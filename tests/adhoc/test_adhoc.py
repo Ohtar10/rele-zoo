@@ -4,7 +4,7 @@ from hydra import compose, initialize_config_module
 from relezoo.cli import hcli
 
 
-@pytest.mark.skip
+@pytest.mark.skip(reason="Debug/Manual only Test")
 class TestAdhoc:
     """Test Adhoc.
 
@@ -24,7 +24,8 @@ class TestAdhoc:
     def test_train(self, environment, algorithm):
         with initialize_config_module(config_module="relezoo.conf"):
             cfg = compose(config_name="config", overrides=[
-                f"environment={environment}",
+                f"environments@env_train={environment}",
+                f"environments@env_test={environment}",
                 f"algorithm={algorithm}"
             ])
             try:

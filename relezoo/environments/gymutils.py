@@ -2,7 +2,6 @@ from typing import Any, Optional
 
 import gym
 from gym import Env
-from gym.spaces import Box
 
 from relezoo.environments.base import Environment
 
@@ -20,15 +19,26 @@ class GymWrapper(Environment):
         # This is a local copy of the env only for
         # extracting metadata.
         self.__env: Env = gym.make(self.name)
+        self.__observation_space = None
+        self.__action_space = None
+        self._build_metadata()
+
+    def _build_metadata(self) -> None:
+        if isinstance(self.__env.observation_space, gym.spaces.Box):
+            self.__observation_space = (1,) + self.__env.observation_space.shape
+        elif isinstance(self.__env.observation_space, gym.spaces.Discrete):
+            self.__observation_space = (1, 1)
+
+        if isinstance(self.__env.action_space, gym.spaces.Box):
+            self.__action_space = (1,) + self.__env.action_space.shape
+        elif isinstance(self.__env.action_space, gym.spaces.Discrete):
+            self.__action_space = (1, 1)
 
     def get_observation_space(self) -> Any:
-        return self.__env.observation_space.shape
+        return self.__observation_space
 
     def get_action_space(self) -> Any:
-        if isinstance(self.__env.action_space, Box):
-            return self.__env.action_space.shape
-        else:
-            return [self.__env.action_space.n]
+        return self.__action_space
 
     def build_environment(self) -> gym.Env:
         return gym.make(self.name, **self.params)

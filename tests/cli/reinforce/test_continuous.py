@@ -14,7 +14,8 @@ class TestReinforceContinuousCli:
         with initialize_config_module(config_module="relezoo.conf"):
             cfg = compose(config_name="config",
                           overrides=[
-                              "environment=pendulum",
+                              "environments@env_train=pendulum",
+                              "environments@env_test=pendulum",
                               "algorithm=reinforce-continuous"
                           ])
             try:

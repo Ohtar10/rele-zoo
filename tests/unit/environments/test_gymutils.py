@@ -15,9 +15,10 @@ class TestGymWrapper:
         "LunarLander-v2"
     ])
     def test_build_discrete_action_envs(self, env_name):
-        builder = GymWrapper(env_name)
-        env = builder.build_environment()
-        assert isinstance(env, gym.Env)
+        env = GymWrapper(env_name)
+        gym_env = env.build_environment()
+        assert isinstance(gym_env, gym.Env)
+        TestGymWrapper.assert_action_space(gym_env, env)
 
     @pytest.mark.parametrize("env_name", [
         "Pendulum-v1",
@@ -25,9 +26,10 @@ class TestGymWrapper:
         "MountainCarContinuous-v0"
     ])
     def test_build_continuous_action_envs(self, env_name):
-        builder = GymWrapper(env_name)
-        env = builder.build_environment()
-        assert isinstance(env, gym.Env)
+        env = GymWrapper(env_name)
+        gym_env = env.build_environment()
+        assert isinstance(gym_env, gym.Env)
+        TestGymWrapper.assert_action_space(gym_env, env)
 
     @pytest.mark.parametrize(("env_name", "params"), [
         ("Pendulum-v1", {"g": 9.81}),
@@ -41,3 +43,17 @@ class TestGymWrapper:
         for k, v in params.items():
             assert hasattr(env.env, k)
             assert getattr(env.env, k) == v
+
+    @staticmethod
+    def assert_observation_space(gym_env: gym.Env, env: GymWrapper):
+        if isinstance(gym_env.observation_space, gym.spaces.Box):
+            assert env.get_observation_space() == (1,) + gym_env.observation_space.shape
+        elif isinstance(gym_env.observation_space, gym.spaces.Discrete):
+            assert env.get_observation_space() == (1, 1)
+
+    @staticmethod
+    def assert_action_space(gym_env: gym.Env, env: GymWrapper):
+        if isinstance(gym_env.action_space, gym.spaces.Box):
+            assert env.get_action_space() == (1,) + gym_env.action_space.shape
+        elif isinstance(gym_env.action_space, gym.spaces.Discrete):
+            assert env.get_action_space() == (1, 1)

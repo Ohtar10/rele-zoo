@@ -24,11 +24,10 @@ class RayGym(object):
 
 
 class ParallelGym(Environment, ABC):
-    def __init__(self, name: str, num_envs: int, render_id: int = 0, **kwargs):
+    def __init__(self, name: str, num_envs: int, **kwargs):
         self.name = name
         self.num_envs = num_envs
         self.params = kwargs
-        self.render_id = render_id
         self.__observation_space = None
         self.__action_space = None
         self.__local: gym.Env = gym.make(name)
