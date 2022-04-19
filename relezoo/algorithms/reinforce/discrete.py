@@ -1,5 +1,5 @@
 import os.path
-from typing import Optional
+from typing import Optional, Dict, Any
 
 import numpy as np
 import torch
@@ -11,6 +11,7 @@ from relezoo.algorithms.base import Policy, Algorithm
 from relezoo.environments.base import Environment
 from relezoo.networks.base import Network
 from relezoo.utils.network import NetworkMode
+from relezoo.utils.structure import Context
 
 
 class ReinforceDiscretePolicy(Policy):
@@ -114,7 +115,7 @@ class ReinforceDiscrete(Algorithm):
         self.train_steps = 0
         self.play_env = play_env
 
-    def train(self, env: Environment, epochs: int = 50, render: bool = False):
+    def train(self, env: Environment, context: Context, eval_env: Optional[Environment] = None):
         """train
         The main training loop for the algorithm.
 
@@ -122,10 +123,14 @@ class ReinforceDiscrete(Algorithm):
         """
         assert self.policy is not None, "The policy is not defined."
         self.policy.set_mode(NetworkMode.TRAIN)
+        epochs = context.episodes
+        render = context.render
         with tqdm(total=epochs) as progress:
             for i in range(1, epochs + 1):
                 is_last_epoch = i == epochs
-                batch_loss, batch_returns, batch_lens = self._train_epoch(env, self.batch_size, render, is_last_epoch)
+                batch_loss, batch_returns, batch_lens = self._train_epoch(env, self.batch_size)
+                if eval_env is not None and (i % context.eval_every == 0 or is_last_epoch):  # evaluate every 10 epochs
+                    self._evaluate(eval_env, i, render)
                 progress.set_postfix({
                     "loss": f"{batch_loss:.2f}",
                     "score": f"{np.mean(batch_returns):.2f}",
@@ -139,9 +144,7 @@ class ReinforceDiscrete(Algorithm):
 
     def _train_epoch(self,
                      env: Environment,
-                     batch_size: int = 5000,
-                     render: bool = False,
-                     is_last_epoch: bool = False) -> (float, float, int):
+                     batch_size: int = 5000) -> (float, float, int):
         batch_obs = []
         batch_actions = []
         batch_weights = []
@@ -150,16 +153,8 @@ class ReinforceDiscrete(Algorithm):
 
         obs = env.reset()
         episode_rewards = []
-        render_epoch = False
-        render_frames = []
 
         while True:
-            if render and not render_epoch:
-                env.render()
-
-            if render and not render_epoch:
-                render_frames.append(env.render(mode='rgb_array'))
-
             batch_obs.append(obs.copy())
 
             action = self.policy.act(torch.from_numpy(obs))
@@ -184,8 +179,6 @@ class ReinforceDiscrete(Algorithm):
 
                 obs, done, episode_rewards = env.reset(), False, []
 
-                render_epoch = True
-
                 if len(batch_obs) > batch_size:
                     break
 
@@ -195,17 +188,43 @@ class ReinforceDiscrete(Algorithm):
             torch.from_numpy(np.array(batch_weights))
         )
 
-        self._log(is_last_epoch, batch_loss, batch_returns, batch_lens, render_frames)
+        self._log(batch_loss, batch_returns, batch_lens)
 
         self.train_steps += 1
 
         return batch_loss, batch_returns, batch_lens
 
-    def _log(self, is_last_epoch: bool, batch_loss, batch_returns, batch_lens, render_frames):
+    def _evaluate(self, env: Environment, step: int, render: bool = False):
+        render_frames = []
+        episode_return = 0
+        obs = env.reset()
+        while True:
+            if render:
+                render_frames.append(env.render(mode='rgb_array'))
+
+            action = self.policy.act(torch.from_numpy(obs))
+            obs, reward, done, _ = env.step(action)
+            episode_return += reward
+            if done:
+                break
+
+        self.logger.add_scalar("evaluation/return", episode_return, global_step=step)
+        self.logger.add_scalar('evaluation/episode_length', len(render_frames), global_step=step)
+
+        if render:
+            # T x H x W x C
+            sequence = np.array(render_frames)
+            # T x C x H x W
+            sequence = np.transpose(sequence, [0, 3, 1, 2])
+            # B x T x C x H x W
+            sequence = np.expand_dims(sequence, axis=0)
+            self.logger.add_video("live-play", vid_tensor=sequence, global_step=step, fps=8)
+
+    def _log(self, batch_loss, batch_returns, batch_lens):
         if self.logger is not None:
-            self.logger.add_scalar('loss', batch_loss, self.train_steps)
-            self.logger.add_scalar('return', np.mean(batch_returns), self.train_steps)
-            self.logger.add_scalar('episode_length', np.mean(batch_lens), self.train_steps)
+            self.logger.add_scalar('training/loss', batch_loss, self.train_steps)
+            self.logger.add_scalar('training/return', np.mean(batch_returns), self.train_steps)
+            self.logger.add_scalar('training/episode_length', np.mean(batch_lens), self.train_steps)
 
             for name, p in self.policy.net.named_parameters():
                 if p.grad is None:
@@ -215,17 +234,6 @@ class ReinforceDiscrete(Algorithm):
                     tag=f"grads/{name}", values=p.grad.detach().cpu().numpy(), global_step=self.train_steps
                 )
 
-            # Render video every 10 steps only or in the last epoch
-            if render_frames and (self.train_steps % 10 == 0 or is_last_epoch):
-                # T x H x W x C
-                sequence = np.array(render_frames)
-                # T x C x H x W
-                sequence = np.transpose(sequence, [0, 3, 1, 2])
-                # B x T x C x H x W
-                sequence = np.expand_dims(sequence, axis=0)
-                tag = 'end-training' if is_last_epoch else 'training'
-                self.logger.add_video(tag, vid_tensor=sequence, global_step=self.train_steps, fps=8)
-
     def save(self, save_path: str):
         self.policy.save(save_path)
 
@@ -233,7 +241,7 @@ class ReinforceDiscrete(Algorithm):
         net = torch.load(load_path)
         self.policy = ReinforceDiscretePolicy(net)
 
-    def play(self, env: Environment, episodes: int, render: bool = False) -> (float, int):
+    def play(self, env: Environment, context: Context) -> (float, int):
         """play.
         Play the environments using the current
         policy, without learning, for as many
@@ -241,6 +249,8 @@ class ReinforceDiscrete(Algorithm):
         """
         assert self.policy is not None, "The policy is not defined."
         self.policy.set_mode(NetworkMode.EVAL)
+        episodes = context.episodes
+        render = context.render
         with tqdm(total=episodes) as progress:
             ep_rewards = []
             ep_lengths = []

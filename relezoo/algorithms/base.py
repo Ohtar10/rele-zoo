@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
+from typing import Optional, Dict, Any
 
 import torch
 
 from relezoo.environments.base import Environment
+from relezoo.utils.structure import Context
 
 
 class Algorithm(ABC):
@@ -11,11 +13,11 @@ class Algorithm(ABC):
     Represents an RL algorithm to solve a task.
     """
     @abstractmethod
-    def train(self, env: Environment, episodes: int, render: bool) -> None:
+    def train(self, env: Environment, context: Context, eval_env: Optional[Environment] = None) -> None:
         pass
 
     @abstractmethod
-    def play(self, env: Environment, episodes: int, render: bool) -> (float, int):
+    def play(self, env: Environment, context: Context) -> (float, int):
         pass
 
     @abstractmethod

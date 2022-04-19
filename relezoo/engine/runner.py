@@ -6,6 +6,7 @@ from hydra.utils import instantiate
 from omegaconf import DictConfig
 
 from relezoo.environments.base import Environment
+from relezoo.utils.structure import Context
 
 
 class Runner:
@@ -55,12 +56,13 @@ class Runner:
         Runs the experiment as per
         configuration mode.
         """
-        if "train" == self.cfg.mode:
-            os.makedirs(Path(self.cfg.checkpoints), exist_ok=True)
-            self.algorithm.train(self.env_train, self.cfg.episodes, self.cfg.render)
-            self.algorithm.save(os.path.join(self.workdir, self.cfg.checkpoints))
-        elif "play" == self.cfg.mode:
-            self.algorithm.load(self.cfg.checkpoints)
-            self.algorithm.play(self.env_test, self.cfg.episodes, self.cfg.render)
+        ctx = Context(self.cfg.context)
+        if "train" == ctx.mode:
+            os.makedirs(Path(ctx.checkpoints), exist_ok=True)
+            self.algorithm.train(self.env_train, ctx, self.env_test)
+            self.algorithm.save(os.path.join(self.workdir, ctx.checkpoints))
+        elif "play" == ctx.mode:
+            self.algorithm.load(ctx.checkpoints)
+            self.algorithm.play(self.env_test, ctx)
 
 

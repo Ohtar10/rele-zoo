@@ -2,6 +2,7 @@ import mock
 import pytest
 from relezoo.algorithms.reinforce.continuous import ReinforceContinuousPolicy, ReinforceContinuous
 from relezoo.environments import GymWrapper
+from relezoo.utils.structure import Context
 from tests.utils.common import MAX_TEST_EPISODES
 from tests.utils.netpol import build_net
 
@@ -21,7 +22,11 @@ class TestReinforceContinuousInt:
         env = GymWrapper("Pendulum-v1")
         policy = build_policy(env)
         algo = ReinforceContinuous(policy=policy, logger=mock_logger)
-        algo.train(env, episodes=MAX_TEST_EPISODES)
+        ctx = Context({
+            "episodes": MAX_TEST_EPISODES,
+            "render": False
+        })
+        algo.train(env, ctx)
         assert mock_logger.add_scalar.call_count == MAX_TEST_EPISODES * 3
 
     @mock.patch("tensorboardX.SummaryWriter")
@@ -29,7 +34,11 @@ class TestReinforceContinuousInt:
         env = GymWrapper("Pendulum-v1")
         policy = build_policy(env)
         algo = ReinforceContinuous(policy=policy, logger=mock_logger)
-        rewards, lengths = algo.play(env, episodes=MAX_TEST_EPISODES)
+        ctx = Context({
+            "episodes": MAX_TEST_EPISODES,
+            "render": False
+        })
+        rewards, lengths = algo.play(env, ctx)
         assert isinstance(rewards, float)
         assert isinstance(lengths, float)
         assert rewards != 0.0

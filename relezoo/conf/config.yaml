@@ -9,12 +9,13 @@ defaults:
 ##########################
 ## Experiment wise vars ##
 ##########################
-
-experiment_name: Relezoo
-mode: train
-render: False
-checkpoints: checkpoints/
-episodes: 50
+context:
+  experiment_name: Relezoo
+  mode: train
+  render: False
+  eval_every: 10
+  checkpoints: checkpoints/
+  episodes: 50
 network:
   infer_in_shape: True
   infer_out_shape: True

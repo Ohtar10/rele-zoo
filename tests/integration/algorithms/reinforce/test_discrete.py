@@ -4,6 +4,7 @@ import pytest
 from relezoo.algorithms.reinforce.discrete import ReinforceDiscrete, ReinforceDiscretePolicy
 from relezoo.environments import GymWrapper
 from relezoo.environments.base import Environment
+from relezoo.utils.structure import Context
 from tests.utils.common import MAX_TEST_EPISODES
 from tests.utils.netpol import build_net
 
@@ -24,7 +25,11 @@ class TestReinforceDiscreteInt:
         env = GymWrapper("CartPole-v0")
         policy = build_policy(env)
         algo = ReinforceDiscrete(policy=policy, logger=mock_logger)
-        algo.train(env, epochs=MAX_TEST_EPISODES)
+        ctx = Context({
+            "episodes": MAX_TEST_EPISODES,
+            "render": False
+        })
+        algo.train(env, ctx)
         assert mock_logger.add_scalar.call_count == MAX_TEST_EPISODES * 3  # n epochs * 3 metrics
 
     @mock.patch("tensorboardX.SummaryWriter")
@@ -32,7 +37,11 @@ class TestReinforceDiscreteInt:
         env = GymWrapper("CartPole-v0")
         policy = build_policy(env)
         algo = ReinforceDiscrete(policy=policy, logger=mock_logger)
-        rewards, lengths = algo.play(env, episodes=MAX_TEST_EPISODES)
+        ctx = Context({
+            "episodes": MAX_TEST_EPISODES,
+            "render": False
+        })
+        rewards, lengths = algo.play(env, ctx)
         assert isinstance(rewards, float)
         assert isinstance(lengths, float)
         assert rewards > 0.0
@@ -49,5 +58,9 @@ class TestReinforceDiscreteInt:
         env = GymWrapper(env_name)
         policy = build_policy(env)
         algo = ReinforceDiscrete(policy=policy, logger=mock_logger)
-        algo.train(env, epochs=MAX_TEST_EPISODES)
+        ctx = Context({
+            "episodes": MAX_TEST_EPISODES,
+            "render": False
+        })
+        algo.train(env, ctx)
         assert mock_logger.add_scalar.call_count == MAX_TEST_EPISODES * 3  # n epochs * 3 metrics

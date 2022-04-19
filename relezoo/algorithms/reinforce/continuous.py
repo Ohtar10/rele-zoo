@@ -12,6 +12,7 @@ from relezoo.environments.base import Environment
 from relezoo.networks.base import Network
 from relezoo.utils.network import NetworkMode
 from relezoo.utils.noise import make_noise
+from relezoo.utils.structure import Context
 
 
 class ReinforceContinuousPolicy(Policy):
@@ -125,7 +126,12 @@ class ReinforceContinuous(Algorithm):
         self.train_steps = 0
         self.play_env = play_env
 
-    def train(self, env: Environment, episodes: int = 50, render: bool = False) -> None:
+    def train(
+            self,
+            env: Environment,
+            context: Context,
+            eval_env: Optional[Environment] = None
+    ) -> None:
         """train
         The main training loop for the algorithm.
 
@@ -133,10 +139,14 @@ class ReinforceContinuous(Algorithm):
         """
         assert self.policy is not None, "The policy is not defined."
         self.policy.set_mode(NetworkMode.TRAIN)
+        episodes = context.episodes
+        render = context.render
         with tqdm(total=episodes) as progress:
             for i in range(1, episodes + 1):
                 is_last_episode = i == episodes
-                batch_loss, batch_returns, batch_lens = self._train_epoch(env, self.batch_size, render, is_last_episode)
+                batch_loss, batch_returns, batch_lens = self._train_epoch(env, self.batch_size)
+                if eval_env is not None and (i % context.eval_every == 0 or is_last_episode):  # evaluate every 10 epochs
+                    self._evaluate(eval_env, i, render)
                 progress.set_postfix({
                     "loss": f"{batch_loss:.2f}",
                     "score": f"{np.mean(batch_returns):.2f}",
@@ -150,9 +160,7 @@ class ReinforceContinuous(Algorithm):
 
     def _train_epoch(self,
                      env: Environment,
-                     batch_size: int = 5000,
-                     render: bool = False,
-                     is_last_episode: bool = False) -> (float, float, int):
+                     batch_size: int = 5000) -> (float, float, int):
         batch_obs = []
         batch_actions = []
         batch_weights = []
@@ -161,16 +169,8 @@ class ReinforceContinuous(Algorithm):
 
         obs = env.reset()
         episode_rewards = []
-        render_episode = False
-        render_frames = []
 
         while True:
-            if render and not render_episode:
-                env.render()
-
-            if render and not render_episode:
-                render_frames.append(env.render(mode='rgb_array'))
-
             batch_obs.append(obs.copy())
 
             action = self.policy.act(torch.from_numpy(obs))
@@ -187,8 +187,6 @@ class ReinforceContinuous(Algorithm):
 
                 obs, done, episode_rewards = env.reset(), False, []
 
-                render_episode = True
-
                 if len(batch_obs) > batch_size:
                     break
 
@@ -198,12 +196,38 @@ class ReinforceContinuous(Algorithm):
             torch.from_numpy(np.array(batch_weights))
         )
 
-        self._log(is_last_episode, batch_loss, batch_returns, batch_lens, render_frames)
+        self._log(batch_loss, batch_returns, batch_lens)
         self.train_steps += 1
 
         return batch_loss, batch_returns, batch_lens
 
-    def _log(self, is_last_episode: bool, batch_loss, batch_returns, batch_lens, render_frames):
+    def _evaluate(self, env: Environment, step: int, render: bool = False):
+        render_frames = []
+        episode_return = 0
+        obs = env.reset()
+        while True:
+            if render:
+                render_frames.append(env.render(mode='rgb_array'))
+
+            action = self.policy.act(torch.from_numpy(obs))
+            obs, reward, done, _ = env.step(action)
+            episode_return += reward
+            if done:
+                break
+
+        self.logger.add_scalar("evaluation/return", episode_return, global_step=step)
+        self.logger.add_scalar('evaluation/episode_length', len(render_frames), global_step=step)
+
+        if render:
+            # T x H x W x C
+            sequence = np.array(render_frames)
+            # T x C x H x W
+            sequence = np.transpose(sequence, [0, 3, 1, 2])
+            # B x T x C x H x W
+            sequence = np.expand_dims(sequence, axis=0)
+            self.logger.add_video("live-play", vid_tensor=sequence, global_step=step, fps=8)
+
+    def _log(self, batch_loss, batch_returns, batch_lens):
         if self.logger is not None:
             self.logger.add_scalar('loss', batch_loss, self.train_steps)
             self.logger.add_scalar('return', np.mean(batch_returns), self.train_steps)
@@ -223,14 +247,7 @@ class ReinforceContinuous(Algorithm):
                 tag="grads/log_std", values=p.grad.detach().cpu().numpy(), global_step=self.train_steps
             )
 
-        if render_frames and (self.train_steps % 10 == 0 or is_last_episode):
-            sequence = np.array(render_frames)
-            sequence = np.transpose(sequence, [0, 3, 1, 2])
-            sequence = np.expand_dims(sequence, axis=0)
-            tag = 'end-training' if is_last_episode else 'training'
-            self.logger.add_video(tag, vid_tensor=sequence, global_step=self.train_steps, fps=8)
-
-    def play(self, env: Environment, episodes: int, render: bool = False) -> (float, int):
+    def play(self, env: Environment, context: Context) -> (float, int):
         """play.
         Play the environments using the current
         policy, without learning, for as many
@@ -238,6 +255,8 @@ class ReinforceContinuous(Algorithm):
         """
         assert self.policy is not None, "The policy is not defined."
         self.policy.set_mode(NetworkMode.EVAL)
+        episodes = context.episodes
+        render = context.render
         with tqdm(total=episodes) as progress:
             ep_rewards = []
             ep_lengths = []

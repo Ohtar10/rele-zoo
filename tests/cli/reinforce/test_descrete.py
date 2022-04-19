@@ -15,9 +15,9 @@ class TestReinforceDiscreteCli:
             cfg = compose(config_name="config")
             try:
                 # test for only three episodes instead of the default
-                cfg.episodes = MAX_TEST_EPISODES
+                cfg.context.episodes = MAX_TEST_EPISODES
                 hcli.hrelezoo(cfg)
-                checkpoints = os.path.join(os.getcwd(), cfg.checkpoints)
+                checkpoints = os.path.join(os.getcwd(), cfg.context.checkpoints)
                 expected_cp = os.path.join(checkpoints, f"{ReinforceDiscretePolicy.__name__}.cpt")
                 assert os.path.exists(expected_cp)
             except Exception as e:
@@ -40,9 +40,24 @@ class TestReinforceDiscreteCli:
                           )
             try:
                 # test for only three episodes instead of the default
-                cfg.episodes = MAX_TEST_EPISODES
-                cfg.mode = 'play'
-                cfg.checkpoints = os.path.join(BASELINES_PATH, "reinforce", environment, f"{environment}.cpt")
+                cfg.context.episodes = MAX_TEST_EPISODES
+                cfg.context.mode = 'play'
+                cfg.context.checkpoints = os.path.join(BASELINES_PATH, "reinforce", environment, f"{environment}.cpt")
                 hcli.hrelezoo(cfg)
+            except Exception as e:
+                pytest.fail(f"It should not have failed. {e}")
+
+    def test_reinforce_discrete_train_with_render(self) -> None:
+        with initialize_config_module(config_module="relezoo.conf"):
+            cfg = compose(config_name="config")
+            try:
+                # test for only three episodes instead of the default
+                cfg.context.episodes = MAX_TEST_EPISODES
+                cfg.context.render = True
+                cfg.context.eval_every = 1
+                hcli.hrelezoo(cfg)
+                checkpoints = os.path.join(os.getcwd(), cfg.context.checkpoints)
+                expected_cp = os.path.join(checkpoints, f"{ReinforceDiscretePolicy.__name__}.cpt")
+                assert os.path.exists(expected_cp)
             except Exception as e:
                 pytest.fail(f"It should not have failed. {e}")
