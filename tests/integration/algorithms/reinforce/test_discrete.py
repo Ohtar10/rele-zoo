@@ -27,7 +27,8 @@ class TestReinforceDiscreteInt:
         algo = ReinforceDiscrete(policy=policy, logger=mock_logger)
         ctx = Context({
             "episodes": MAX_TEST_EPISODES,
-            "render": False
+            "render": False,
+            "gpu": False
         })
         algo.train(env, ctx)
         assert mock_logger.add_scalar.call_count == MAX_TEST_EPISODES * 3  # n epochs * 3 metrics
@@ -39,7 +40,8 @@ class TestReinforceDiscreteInt:
         algo = ReinforceDiscrete(policy=policy, logger=mock_logger)
         ctx = Context({
             "episodes": MAX_TEST_EPISODES,
-            "render": False
+            "render": False,
+            "gpu": False
         })
         rewards, lengths = algo.play(env, ctx)
         assert isinstance(rewards, float)
@@ -60,7 +62,8 @@ class TestReinforceDiscreteInt:
         algo = ReinforceDiscrete(policy=policy, logger=mock_logger)
         ctx = Context({
             "episodes": MAX_TEST_EPISODES,
-            "render": False
+            "render": False,
+            "gpu": False
         })
         algo.train(env, ctx)
         assert mock_logger.add_scalar.call_count == MAX_TEST_EPISODES * 3  # n epochs * 3 metrics

@@ -16,6 +16,7 @@ context:
   eval_every: 10
   checkpoints: checkpoints/
   episodes: 50
+  gpu: True # use gpu if available
 
 network:
   infer_in_shape: True

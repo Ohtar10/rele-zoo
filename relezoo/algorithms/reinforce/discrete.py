@@ -38,6 +38,7 @@ class ReinforceDiscretePolicy(Policy):
         self.eps_min = eps_min
         self.eps_decay = eps_decay
         self.optimizer = optim.Adam(self.net.parameters(), learning_rate)
+        self.device = "cpu"
 
     def set_mode(self, mode: NetworkMode):
         if mode == NetworkMode.TRAIN:
@@ -51,6 +52,7 @@ class ReinforceDiscretePolicy(Policy):
         The action will be sampled from a categorical
         distribution considering the logits outputs from
         the underlying neural network."""
+        obs = obs.to(self.device)
         if 0.0 < self.eps < np.random.random():
             self.eps = max(self.eps_min, self.eps * self.eps_decay)
             out_features = self.net.get_output_shape()
@@ -68,6 +70,10 @@ class ReinforceDiscretePolicy(Policy):
         """learn.
         Performs a learning step over the underlying neural
         network using the provided batch of observations, actions, and weights (episode returns)."""
+        batch_obs = batch_obs.to(self.device)
+        batch_actions = batch_actions.to(self.device)
+        batch_weights = batch_weights.to(self.device)
+
         self.optimizer.zero_grad()
         batch_loss = self._compute_loss(batch_obs, batch_actions, batch_weights)
         batch_loss.backward()
@@ -95,6 +101,10 @@ class ReinforceDiscretePolicy(Policy):
     def save(self, save_path: str):
         path = os.path.join(save_path, f"{self.__class__.__name__}.cpt")
         torch.save(self.net, path)
+
+    def to(self, device: str) -> None:
+        self.device = device
+        self.net = self.net.to(device)
 
 
 class ReinforceDiscrete(Algorithm):
@@ -125,6 +135,8 @@ class ReinforceDiscrete(Algorithm):
         self.policy.set_mode(NetworkMode.TRAIN)
         epochs = context.episodes
         render = context.render
+        device = "cuda" if context.gpu and torch.cuda.is_available() else "cpu"
+        self.policy.to(device)
         with tqdm(total=epochs) as progress:
             for i in range(1, epochs + 1):
                 is_last_epoch = i == epochs
@@ -251,6 +263,8 @@ class ReinforceDiscrete(Algorithm):
         self.policy.set_mode(NetworkMode.EVAL)
         episodes = context.episodes
         render = context.render
+        device = "cuda" if context.gpu and torch.cuda.is_available() else "cpu"
+        self.policy.to(device)
         with tqdm(total=episodes) as progress:
             ep_rewards = []
             ep_lengths = []

@@ -45,6 +45,7 @@ class ReinforceContinuousPolicy(Policy):
         self.noise = None
         if noise is not None:
             self._build_noise(noise)
+        self.device = "cpu"
 
     def _build_noise(self, noise: Dict[str, Any]):
         name = noise['name']
@@ -70,17 +71,22 @@ class ReinforceContinuousPolicy(Policy):
         The action will be sampled from a normal
         distribution considering mu and std output
         from the underlying neural network."""
+        obs = obs.to(self.device)
         distribution = self._get_policy(obs)
         action = distribution.sample()
 
         if self.noise is not None:
-            return action + self.noise.sample()
+            return action.cpu() + self.noise.sample()
         return action
 
     def learn(self, batch_obs: torch.Tensor, batch_actions: torch.Tensor, batch_weights: torch.Tensor):
         """learn.
         Performs a learning step over the underlying neural
         network using the provided batch of observations, actions, and weights (episode returns)."""
+        batch_obs = batch_obs.to(self.device)
+        batch_actions = batch_actions.to(self.device)
+        batch_weights = batch_weights.to(self.device)
+
         self.optimizer.zero_grad()
         batch_loss = self._compute_loss(batch_obs, batch_actions, batch_weights)
         batch_loss.backward()
@@ -108,6 +114,11 @@ class ReinforceContinuousPolicy(Policy):
     def save(self, save_path: str):
         path = os.path.join(save_path, f"{self.__class__.__name__}.cpt")
         torch.save(self.net, path)
+
+    def to(self, device: str):
+        self.device = device
+        self.net = self.net.to(device)
+        self.log_std = self.log_std.to(device)
 
 
 class ReinforceContinuous(Algorithm):
@@ -141,6 +152,8 @@ class ReinforceContinuous(Algorithm):
         self.policy.set_mode(NetworkMode.TRAIN)
         episodes = context.episodes
         render = context.render
+        device = "cuda" if context.gpu and torch.cuda.is_available() else "cpu"
+        self.policy.to(device)
         with tqdm(total=episodes) as progress:
             for i in range(1, episodes + 1):
                 is_last_episode = i == episodes
@@ -257,6 +270,8 @@ class ReinforceContinuous(Algorithm):
         self.policy.set_mode(NetworkMode.EVAL)
         episodes = context.episodes
         render = context.render
+        device = "cuda" if context.gpu and torch.cuda.is_available() else "cpu"
+        self.policy.to(device)
         with tqdm(total=episodes) as progress:
             ep_rewards = []
             ep_lengths = []

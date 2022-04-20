@@ -19,7 +19,8 @@ class TestReinforceContinuous:
         algo._train_epoch = mock.MagicMock(return_value=(0.1, np.array([1, 2]), np.array([1, 2])))
         ctx = Context({
             "episodes": MAX_TEST_EPISODES,
-            "render": False
+            "render": False,
+            "gpu": False
         })
         algo.train(mock_env, ctx)
         assert algo._train_epoch.call_count == MAX_TEST_EPISODES
@@ -77,7 +78,8 @@ class TestReinforceContinuous:
 
         ctx = Context({
             "episodes": 1,
-            "render": False
+            "render": False,
+            "gpu": False
         })
 
         avg_reward, avg_ep_length = algo.play(mock_env, ctx)
@@ -99,7 +101,8 @@ class TestReinforceContinuous:
         algo = ReinforceContinuous()
         ctx = Context({
             "episodes": MAX_TEST_EPISODES,
-            "render": False
+            "render": False,
+            "gpu": False
         })
         with pytest.raises(AssertionError) as e:
             algo.train(mock_env, ctx)
