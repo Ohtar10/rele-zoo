@@ -1,12 +1,21 @@
-experiment_name: Relezoo
-mode: train
-render: true
-checkpoints: checkpoints/
-episodes: 50
+context:
+  experiment_name: Relezoo
+  mode: train
+  render: true
+  eval_every: 10
+  checkpoints: checkpoints/
+  episodes: 50
 network:
   infer_in_shape: true
   infer_out_shape: true
-environment:
+ray:
+  cpus: 4
+  memory: 4294967296
+  dashboard_port: 8265
+env_train:
+  _target_: relezoo.environments.GymWrapper
+  name: CartPole-v1
+env_test:
   _target_: relezoo.environments.GymWrapper
   name: CartPole-v1
 algorithm:
@@ -16,6 +25,10 @@ algorithm:
       in_shape: infer
       out_shape: infer
     _target_: relezoo.algorithms.reinforce.discrete.ReinforceDiscretePolicy
+    learning_rate: 0.01
+    eps_start: 0.0
+    eps_min: 0.0
+    eps_decay: 0.0
   _target_: relezoo.algorithms.reinforce.discrete.ReinforceDiscrete
   batch_size: 5000
 logger:

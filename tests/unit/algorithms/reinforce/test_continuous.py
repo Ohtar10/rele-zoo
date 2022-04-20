@@ -64,7 +64,7 @@ class TestReinforceContinuous:
         mock_net.parameters.return_value = dummy_parameters
         policy = ReinforceContinuousPolicy(mock_net)
         algo = ReinforceContinuous(policy)
-        policy.act = mock.MagicMock(side_effect=[0, 1, 1, 0])
+        policy.act = mock.MagicMock(side_effect=torch.Tensor([0, 1, 1, 0]))
         steps = [
             (np.array([1, 1, 1]), 1, False, None),
             (np.array([1, 0, 1]), 2, False, None),

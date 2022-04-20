@@ -57,7 +57,7 @@ class ReinforceDiscretePolicy(Policy):
             return np.random.randint(0, out_features)
         else:
             logits = self._get_policy(obs)
-            action = logits.sample().item()
+            action = logits.sample()
             return action
 
     def _get_policy(self, obs: torch.Tensor):
@@ -157,13 +157,13 @@ class ReinforceDiscrete(Algorithm):
         while True:
             batch_obs.append(obs.copy())
 
-            action = self.policy.act(torch.from_numpy(obs))
+            action = self.policy.act(torch.from_numpy(obs)).cpu().numpy()
             obs, reward, done, _ = env.step(action)
 
             batch_actions.append(action)
             episode_rewards.append(reward)
 
-            if done:
+            if np.any(done):
                 # On episode end, we must build the batch to submit
                 # to later make the policy learn.
                 episode_return, episode_length = sum(episode_rewards), len(episode_rewards)
@@ -202,7 +202,7 @@ class ReinforceDiscrete(Algorithm):
             if render:
                 render_frames.append(env.render(mode='rgb_array'))
 
-            action = self.policy.act(torch.from_numpy(obs))
+            action = self.policy.act(torch.from_numpy(obs)).cpu().numpy()
             obs, reward, done, _ = env.step(action)
             episode_return += reward
             if done:
@@ -262,7 +262,7 @@ class ReinforceDiscrete(Algorithm):
                     if render:
                         env.render()
 
-                    action = self.policy.act(torch.from_numpy(obs))
+                    action = self.policy.act(torch.from_numpy(obs)).cpu().numpy()
                     obs, reward, done, _ = env.step(action)
                     ep_reward += reward
                     if done:

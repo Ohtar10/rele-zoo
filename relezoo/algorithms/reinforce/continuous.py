@@ -71,7 +71,7 @@ class ReinforceContinuousPolicy(Policy):
         distribution considering mu and std output
         from the underlying neural network."""
         distribution = self._get_policy(obs)
-        action = distribution.sample().cpu().numpy()
+        action = distribution.sample()
 
         if self.noise is not None:
             return action + self.noise.sample()
@@ -173,12 +173,12 @@ class ReinforceContinuous(Algorithm):
         while True:
             batch_obs.append(obs.copy())
 
-            action = self.policy.act(torch.from_numpy(obs))
+            action = self.policy.act(torch.from_numpy(obs)).cpu().numpy()
             obs, reward, done, _ = env.step(action)
             batch_actions.append(action)
             episode_rewards.append(reward)
 
-            if done:
+            if np.any(done):
                 episode_return, episode_length = sum(episode_rewards), len(episode_rewards)
                 batch_returns.append(episode_return)
                 batch_lens.append(episode_length)
@@ -209,7 +209,7 @@ class ReinforceContinuous(Algorithm):
             if render:
                 render_frames.append(env.render(mode='rgb_array'))
 
-            action = self.policy.act(torch.from_numpy(obs))
+            action = self.policy.act(torch.from_numpy(obs)).cpu().numpy()
             obs, reward, done, _ = env.step(action)
             episode_return += reward
             if done:
@@ -268,7 +268,7 @@ class ReinforceContinuous(Algorithm):
                     if render:
                         env.render()
 
-                    action = self.policy.act(torch.from_numpy(obs))
+                    action = self.policy.act(torch.from_numpy(obs)).cpu().numpy()
                     obs, reward, done, _ = env.step(action)
                     ep_reward += reward
                     if done:

@@ -18,7 +18,7 @@ class TestAdhoc:
     @pytest.mark.parametrize(
         ("environment", "algorithm"),
         [
-            ("pendulum", "reinforce-continuous")
+            ("cartpole", "reinforce-discrete")
         ]
     )
     def test_train(self, environment, algorithm):
@@ -29,7 +29,9 @@ class TestAdhoc:
                 f"algorithm={algorithm}"
             ])
             try:
-                cfg.episodes = 5
+                cfg.context.episodes = 5
+                cfg.context.render = True
+                cfg.context.eval_every = 1
                 hcli.hrelezoo(cfg)
             except Exception as e:
                 pytest.fail(f"It should not have failed. {e}")

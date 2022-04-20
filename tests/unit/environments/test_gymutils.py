@@ -56,4 +56,4 @@ class TestGymWrapper:
         if isinstance(gym_env.action_space, gym.spaces.Box):
             assert env.get_action_space() == (1,) + gym_env.action_space.shape
         elif isinstance(gym_env.action_space, gym.spaces.Discrete):
-            assert env.get_action_space() == (1, 1)
+            assert env.get_action_space() == (1, gym_env.action_space.n)

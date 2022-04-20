@@ -13,9 +13,10 @@ log = logging.getLogger(__name__)
 def hrelezoo(cfg: Optional[DictConfig] = None) -> None:
     # print(OmegaConf.to_yaml(cfg))
     ray.init(
-        num_cpus=cfg.ray_cpus,
-        object_store_memory=cfg.ray_memory,
-        dashboard_port=cfg.ray_dashboard_port
+        num_cpus=cfg.ray.cpus,
+        object_store_memory=cfg.ray.memory,
+        dashboard_port=cfg.ray.dashboard_port,
+        ignore_reinit_error=True
     )
     runner = Runner()
     runner.init(cfg)

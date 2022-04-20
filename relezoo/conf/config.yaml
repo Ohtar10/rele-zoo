@@ -16,6 +16,7 @@ context:
   eval_every: 10
   checkpoints: checkpoints/
   episodes: 50
+
 network:
   infer_in_shape: True
   infer_out_shape: True
@@ -24,15 +25,16 @@ network:
 ##########################
 ### Runtime wise vars ####
 ##########################
-ray_cpus: 4
-#4GB in bytes
-ray_memory: 4294967296
-ray_dashboard_port: 8265
+ray:
+  cpus: 4
+  #4GB in bytes
+  memory: 4294967296
+  dashboard_port: 8265
 
 hydra:
   run:
-    dir: outputs/${experiment_name}/${now:%Y-%m-%d_%H-%M-%S}
+    dir: outputs/${context.experiment_name}/${now:%Y-%m-%d_%H-%M-%S}
 
   sweep:
-    dir: outputs/${experiment_name}/multirun
+    dir: outputs/${context.experiment_name}/multirun
     subdir: ${hydra.job.num}/${now:%Y-%m-%d_%H-%M-%S}

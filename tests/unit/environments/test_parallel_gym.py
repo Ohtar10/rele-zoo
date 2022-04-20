@@ -30,7 +30,7 @@ class TestParallelGym:
         if isinstance(l_env.action_space, gym.spaces.Box):
             assert p_env.get_action_space() == (num_envs,) + l_env.action_space.shape
         elif isinstance(l_env.action_space, gym.spaces.Discrete):
-            assert p_env.get_action_space() == (num_envs, 1)
+            assert p_env.get_action_space() == (num_envs, l_env.action_space.n)
         else:
             pytest.fail("Action space not matching")
 
@@ -46,8 +46,15 @@ class TestParallelGym:
     def test_step_parallel_environments(self, test_case):
         num_envs = 5
         env_name = test_case
+        l_env: gym.Env = gym.make(env_name)
         p_env = ParallelGym(env_name, num_envs)
-        actions = np.zeros(p_env.get_action_space(), dtype=np.int)
+        if isinstance(l_env.action_space, gym.spaces.Box):
+            actions = np.zeros(p_env.get_action_space(), dtype=np.int)
+        elif isinstance(l_env.action_space, gym.spaces.Discrete):
+            actions = np.zeros((num_envs, 1), dtype=np.int)
+        else:
+            pytest.fail("Action space not matching")
+
         obs, rewards, dones = p_env.step(actions)
         assert obs.shape == p_env.get_observation_space()
         assert rewards.shape == (num_envs, 1)

@@ -39,12 +39,12 @@ class ParallelGym(Environment, ABC):
         if isinstance(self.__local.observation_space, gym.spaces.Box):
             self.__observation_space = (self.num_envs,) + self.__local.observation_space.shape
         elif isinstance(self.__local.observation_space, gym.spaces.Discrete):
-            self.__observation_space = (self.num_envs, 1)
+            self.__observation_space = (self.num_envs, self.__local.observation_space.n)
 
         if isinstance(self.__local.action_space, gym.spaces.Box):
             self.__action_space = (self.num_envs,) + self.__local.action_space.shape
         elif isinstance(self.__local.action_space, gym.spaces.Discrete):
-            self.__action_space = (self.num_envs, 1)
+            self.__action_space = (self.num_envs, self.__local.action_space.n)
 
     def _build_envs(self) -> None:
         for _ in range(self.num_envs):
