@@ -19,7 +19,7 @@ class Environment(abc.ABC):
         pass
 
     @abstractmethod
-    def reset(self) -> Any:
+    def reset(self, idx: Optional[int] = None) -> Any:
         pass
 
     @abstractmethod

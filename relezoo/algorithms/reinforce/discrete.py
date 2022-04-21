@@ -133,7 +133,7 @@ class ReinforceDiscrete(Algorithm):
         """
         assert self.policy is not None, "The policy is not defined."
         self.policy.set_mode(NetworkMode.TRAIN)
-        epochs = context.episodes
+        epochs = context.epochs
         render = context.render
         device = "cuda" if context.gpu and torch.cuda.is_available() else "cpu"
         self.policy.to(device)
@@ -261,14 +261,14 @@ class ReinforceDiscrete(Algorithm):
         """
         assert self.policy is not None, "The policy is not defined."
         self.policy.set_mode(NetworkMode.EVAL)
-        episodes = context.episodes
+        epochs = context.epochs
         render = context.render
         device = "cuda" if context.gpu and torch.cuda.is_available() else "cpu"
         self.policy.to(device)
-        with tqdm(total=episodes) as progress:
+        with tqdm(total=epochs) as progress:
             ep_rewards = []
             ep_lengths = []
-            for i in range(1, episodes + 1):
+            for i in range(1, epochs + 1):
                 obs = env.reset()
                 ep_length = 1
                 ep_reward = 0

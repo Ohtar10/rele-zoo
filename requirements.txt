@@ -9,3 +9,4 @@ pyglet==1.5.21
 moviepy==1.0.3
 tqdm==4.62.3
 ray==1.11.0
+prometheus_client==0.13.1

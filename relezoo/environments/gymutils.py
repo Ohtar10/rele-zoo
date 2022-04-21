@@ -43,7 +43,8 @@ class GymWrapper(Environment):
     def build_environment(self) -> gym.Env:
         return gym.make(self.name, **self.params)
 
-    def reset(self) -> Any:
+    def reset(self, idx: Optional[int] = None) -> Any:
+        # in a single gym env, idx is just ignored
         return np.expand_dims(self.__env.reset(), axis=0)
 
     def step(self, actions) -> Any:

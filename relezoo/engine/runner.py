@@ -36,7 +36,7 @@ class Runner:
         self.env_train: Environment = instantiate(cfg.env_train)
         self.env_test: Environment = instantiate(cfg.env_test)
         self.logger = instantiate(cfg.logger,
-                                  logdir=os.path.join(self.workdir, cfg.logger.logdir)
+                                  log_dir=os.path.join(self.workdir, cfg.logger.log_dir)
                                   )
 
         if self.cfg.network.infer_in_shape:
@@ -51,18 +51,21 @@ class Runner:
 
         self.algorithm = instantiate(self.cfg.algorithm, logger=self.logger)
 
-    def run(self):
+    def run(self) -> Any:
         """run.
         Runs the experiment as per
         configuration mode.
         """
         ctx = Context(self.cfg.context)
+        result = None
         if "train" == ctx.mode:
             os.makedirs(Path(ctx.checkpoints), exist_ok=True)
-            self.algorithm.train(self.env_train, ctx, self.env_test)
+            result = self.algorithm.train(self.env_train, ctx, self.env_test)
             self.algorithm.save(os.path.join(self.workdir, ctx.checkpoints))
         elif "play" == ctx.mode:
             self.algorithm.load(ctx.checkpoints)
-            self.algorithm.play(self.env_test, ctx)
+            result = self.algorithm.play(self.env_test, ctx)
+
+        return result
 
 

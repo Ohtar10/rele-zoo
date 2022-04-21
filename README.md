@@ -87,7 +87,7 @@ relezoo-run environments@env_train=acrobot
 By default, `relezoo-run` runs in train mode, to run in test mode, specify the property and the path to the checkpoints
 as per chosen algorithm
 ```bash
-relezoo-run context.mode=play context.episodes=5 context.render=true checkpoints=../../../baselines/reinforce/cartpole/cartpole.cpt
+relezoo-run context.mode=play context.epochs=5 context.render=true checkpoints=../../../baselines/reinforce/cartpole/cartpole.cpt
 ```
 
 ### Shell

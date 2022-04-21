@@ -1,2 +1,2 @@
-_target_: tensorboardX.SummaryWriter
-logdir: tensorboard
+_target_: torch.utils.tensorboard.writer.SummaryWriter
+log_dir: tensorboard

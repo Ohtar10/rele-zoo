@@ -20,7 +20,7 @@ class TestReinforceContinuousCli:
                           ])
             try:
                 # test for only three episodes instead of the default
-                cfg.context.episodes = MAX_TEST_EPISODES
+                cfg.context.epochs = MAX_TEST_EPISODES
                 hcli.hrelezoo(cfg)
                 checkpoints = os.path.join(os.getcwd(), cfg.context.checkpoints)
                 expected_cp = os.path.join(checkpoints, f"{ReinforceContinuousPolicy.__name__}.cpt")
@@ -39,7 +39,7 @@ class TestReinforceContinuousCli:
                           ])
             try:
                 # test for only three episodes instead of the default
-                cfg.context.episodes = MAX_TEST_EPISODES
+                cfg.context.epochs = MAX_TEST_EPISODES
                 cfg.context.mode = "play"
                 cfg.context.checkpoints = os.path.join(BASELINES_PATH, "reinforce", "pendulum", "pendulum.cpt")
                 hcli.hrelezoo(cfg)
@@ -55,7 +55,7 @@ class TestReinforceContinuousCli:
                               "algorithm=reinforce-continuous"
                           ])
             try:
-                cfg.context.episodes = MAX_TEST_EPISODES
+                cfg.context.epochs = MAX_TEST_EPISODES
                 cfg.context.render = True
                 cfg.context.eval_every = 1
                 hcli.hrelezoo(cfg)

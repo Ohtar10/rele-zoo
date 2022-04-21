@@ -61,9 +61,13 @@ class ParallelGym(Environment, ABC):
     def get_action_space(self) -> Tuple[int]:
         return self.__action_space
 
-    def reset(self) -> Any:
-        obs = [ray.get(e.reset.remote()) for e in self.__envs]
-        return np.array(obs)
+    def reset(self, idx: Optional[int] = None) -> Any:
+        if idx is None:
+            obs = [ray.get(e.reset.remote()) for e in self.__envs]
+            return np.array(obs)
+        else:
+            obs = ray.get(self.__envs[idx].reset.remote())
+            return np.expand_dims(obs, axis=0)
 
     def step(self, actions: Any) -> Any:
         if isinstance(self.__local.action_space, gym.spaces.Discrete):
@@ -72,7 +76,8 @@ class ParallelGym(Environment, ABC):
         obs = np.array([r[0] for r in result])
         rewards = np.expand_dims(np.array([r[1] for r in result]), axis=1)
         dones = np.expand_dims(np.array([r[2] for r in result]), axis=1)
-        return obs, rewards, dones
+        infos = np.expand_dims(np.array([r[3] for r in result]), axis=1)
+        return obs, rewards, dones, infos
 
     def render(self, mode: Optional[str] = None) -> Any:
         pass

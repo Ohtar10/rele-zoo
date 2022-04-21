@@ -13,7 +13,7 @@ class Algorithm(ABC):
     Represents an RL algorithm to solve a task.
     """
     @abstractmethod
-    def train(self, env: Environment, context: Context, eval_env: Optional[Environment] = None) -> None:
+    def train(self, env: Environment, context: Context, eval_env: Optional[Environment] = None) -> Any:
         pass
 
     @abstractmethod
@@ -39,7 +39,7 @@ class Policy(ABC):
         pass
 
     @abstractmethod
-    def learn(self, batch_obs: torch.Tensor, batch_actions: torch.Tensor, batch_weights: torch.Tensor):
+    def learn(self, batch_obs: torch.Tensor, batch_actions: torch.Tensor, batch_weights: Optional[torch.Tensor] = None):
         pass
 
     @abstractmethod

@@ -55,7 +55,7 @@ class TestParallelGym:
         else:
             pytest.fail("Action space not matching")
 
-        obs, rewards, dones = p_env.step(actions)
+        obs, rewards, dones, _ = p_env.step(actions)
         assert obs.shape == p_env.get_observation_space()
         assert rewards.shape == (num_envs, 1)
         assert dones.shape == (num_envs, 1)

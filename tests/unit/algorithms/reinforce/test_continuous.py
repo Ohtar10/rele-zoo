@@ -18,7 +18,7 @@ class TestReinforceContinuous:
         algo = ReinforceContinuous(policy=mock_policy, logger=mock_logger)
         algo._train_epoch = mock.MagicMock(return_value=(0.1, np.array([1, 2]), np.array([1, 2])))
         ctx = Context({
-            "episodes": MAX_TEST_EPISODES,
+            "epochs": MAX_TEST_EPISODES,
             "render": False,
             "gpu": False
         })
@@ -77,7 +77,7 @@ class TestReinforceContinuous:
         mock_from_numpy.side_effect = [s[0] for s in steps]
 
         ctx = Context({
-            "episodes": 1,
+            "epochs": 1,
             "render": False,
             "gpu": False
         })
@@ -100,7 +100,7 @@ class TestReinforceContinuous:
     def test_train_no_policy_should_fail(self, mock_env):
         algo = ReinforceContinuous()
         ctx = Context({
-            "episodes": MAX_TEST_EPISODES,
+            "epochs": MAX_TEST_EPISODES,
             "render": False,
             "gpu": False
         })

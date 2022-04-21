@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from relezoo.algorithms.reinforce.discrete import ReinforceDiscrete, ReinforceDiscretePolicy
+from relezoo.algorithms.xentropy.discrete import CrossEntropyDiscrete, CrossEntropyDiscretePolicy
 from relezoo.environments import GymWrapper
 from relezoo.environments.base import Environment
 from relezoo.utils.structure import Context
@@ -12,19 +12,19 @@ from tests.utils.netpol import build_net
 def build_policy(env: Environment, learning_rate: float = 1e-2):
     in_shape = env.get_observation_space()[1]
     out_shape = env.get_action_space()[1]
-    return ReinforceDiscretePolicy(
+    return CrossEntropyDiscretePolicy(
         build_net(in_shape, out_shape),
         learning_rate)
 
 
 @pytest.mark.integration
-class TestReinforceDiscreteInt:
+class TestXEntropyDiscreteInt:
 
     @mock.patch("tensorboardX.SummaryWriter")
-    def test_smoke_train_reinforce(self, mock_logger):
+    def test_smoke_train(self, mock_logger):
         env = GymWrapper("CartPole-v0")
         policy = build_policy(env)
-        algo = ReinforceDiscrete(policy=policy, logger=mock_logger)
+        algo = CrossEntropyDiscrete(policy=policy, logger=mock_logger)
         ctx = Context({
             "epochs": MAX_TEST_EPISODES,
             "render": False,
@@ -34,10 +34,10 @@ class TestReinforceDiscreteInt:
         assert mock_logger.add_scalar.call_count == MAX_TEST_EPISODES * 3  # n epochs * 3 metrics
 
     @mock.patch("tensorboardX.SummaryWriter")
-    def test_smoke_play_reinforce(self, mock_logger):
+    def test_smoke_play(self, mock_logger):
         env = GymWrapper("CartPole-v0")
         policy = build_policy(env)
-        algo = ReinforceDiscrete(policy=policy, logger=mock_logger)
+        algo = CrossEntropyDiscrete(policy=policy, logger=mock_logger)
         ctx = Context({
             "epochs": MAX_TEST_EPISODES,
             "render": False,
@@ -56,10 +56,10 @@ class TestReinforceDiscreteInt:
         "MountainCar-v0",
         "Acrobot-v1"
     ])
-    def test_train_reinforce_environments(self, mock_logger, env_name: str):
+    def test_train_environments(self, mock_logger, env_name: str):
         env = GymWrapper(env_name)
         policy = build_policy(env)
-        algo = ReinforceDiscrete(policy=policy, logger=mock_logger)
+        algo = CrossEntropyDiscrete(policy=policy, logger=mock_logger)
         ctx = Context({
             "epochs": MAX_TEST_EPISODES,
             "render": False,

@@ -30,3 +30,4 @@ dependencies:
       - tqdm==4.62.3
       - hydra-core==1.1.1
       - ray[default]
+      - prometheus_client==0.13.1

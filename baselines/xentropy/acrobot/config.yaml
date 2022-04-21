@@ -1,0 +1,37 @@
+context:
+  experiment_name: Relezoo
+  mode: train
+  render: true
+  eval_every: 10
+  checkpoints: checkpoints/
+  epochs: 50
+  gpu: true
+network:
+  infer_in_shape: true
+  infer_out_shape: true
+ray:
+  cpus: 4
+  memory: 4294967296
+  dashboard_port: 8265
+env_train:
+  _target_: relezoo.environments.ParallelGym
+  name: Acrobot-v1
+  num_envs: 10
+env_test:
+  _target_: relezoo.environments.GymWrapper
+  name: Acrobot-v1
+algorithm:
+  policy:
+    network:
+      _target_: relezoo.networks.simple.SimpleFC
+      in_shape: infer
+      out_shape: infer
+    _target_: relezoo.algorithms.xentropy.discrete.CrossEntropyDiscretePolicy
+    learning_rate: 0.01
+  _target_: relezoo.algorithms.xentropy.discrete.CrossEntropyDiscrete
+  batch_size: 32
+  elite_percentile: 70.0
+  mean_return_window: 10
+logger:
+  _target_: torch.utils.tensorboard.writer.SummaryWriter
+  log_dir: tensorboard

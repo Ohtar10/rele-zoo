@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Any
 import logging
 import hydra
 from omegaconf import DictConfig, OmegaConf
@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 
 @hydra.main(config_path='../conf', config_name='config')
-def hrelezoo(cfg: Optional[DictConfig] = None) -> None:
+def hrelezoo(cfg: Optional[DictConfig] = None) -> Any:
     # print(OmegaConf.to_yaml(cfg))
     ray.init(
         num_cpus=cfg.ray.cpus,
@@ -20,9 +20,11 @@ def hrelezoo(cfg: Optional[DictConfig] = None) -> None:
     )
     runner = Runner()
     runner.init(cfg)
-    runner.run()
+    result = runner.run()
     log.debug(OmegaConf.to_yaml(cfg))
     ray.shutdown()
+    log.info(result)
+    return result
 
 
 if __name__ == '__main__':

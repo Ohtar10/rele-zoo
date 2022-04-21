@@ -4,19 +4,19 @@ import pytest
 import torch
 import torch.nn as nn
 
-from relezoo.algorithms.reinforce.discrete import ReinforceDiscrete, ReinforceDiscretePolicy
+from relezoo.algorithms.xentropy.discrete import CrossEntropyDiscrete, CrossEntropyDiscretePolicy
 from relezoo.utils.structure import Context
 from tests.utils.common import MAX_TEST_EPISODES
 
 
 @pytest.mark.unit
-class TestReinforceDiscrete:
+class TestXEntropyDiscrete:
 
     @mock.patch("tensorboardX.SummaryWriter")
     @mock.patch("gym.Env")
-    @mock.patch("relezoo.algorithms.reinforce.discrete.ReinforceDiscretePolicy")
-    def test_reinforce_train(self, mock_policy, mock_env, mock_logger):
-        algo = ReinforceDiscrete(policy=mock_policy, logger=mock_logger)
+    @mock.patch("relezoo.algorithms.xentropy.discrete.CrossEntropyDiscretePolicy")
+    def test_train(self, mock_policy, mock_env, mock_logger):
+        algo = CrossEntropyDiscrete(policy=mock_policy, logger=mock_logger)
         algo._train_epoch = mock.MagicMock(return_value=(0.1, np.array([1, 2]), np.array([1, 2])))
         ctx = Context({
             "epochs": MAX_TEST_EPISODES,
@@ -29,44 +29,44 @@ class TestReinforceDiscrete:
         mock_logger.close.assert_called_once()
 
     @mock.patch("tensorboardX.SummaryWriter")
-    @mock.patch("relezoo.algorithms.reinforce.discrete.ReinforceDiscretePolicy")
+    @mock.patch("relezoo.algorithms.xentropy.discrete.CrossEntropyDiscretePolicy")
     def test_save_agent(self, mock_policy, mock_logger):
-        algo = ReinforceDiscrete(policy=mock_policy, logger=mock_logger)
+        algo = CrossEntropyDiscrete(policy=mock_policy, logger=mock_logger)
         save_path = "save-path"
         algo.save(save_path)
         mock_policy.save.called_once_with(save_path)
 
     @mock.patch("torch.nn.Module")
-    @mock.patch("relezoo.algorithms.reinforce.discrete.torch")
+    @mock.patch("relezoo.algorithms.xentropy.discrete.torch")
     def test_save_policy(self, mocked_torch, mock_net):
         dummy_parameters = [nn.Parameter(torch.tensor([1., 2.]))]
         mock_net.parameters.return_value = dummy_parameters
-        policy = ReinforceDiscretePolicy(mock_net)
+        policy = CrossEntropyDiscretePolicy(mock_net)
         save_path = "save-path"
         policy.save(save_path)
         mocked_torch.save.called_once_with(mock_net)
 
     @mock.patch("torch.nn.Module")
     @mock.patch("gym.Env")
-    @mock.patch("relezoo.algorithms.reinforce.discrete.torch")
+    @mock.patch("relezoo.algorithms.xentropy.discrete.torch")
     def test_load_agent(self, mocked_torch, mock_env, mock_net):
         dummy_parameters = [nn.Parameter(torch.tensor([1., 2.]))]
         mock_net.parameters.return_value = dummy_parameters
         mocked_torch.load.return_value = mock_net
-        algo = ReinforceDiscrete(mock_env)
+        algo = CrossEntropyDiscrete(mock_env)
         load_path = "load-path"
         algo.load(load_path)
         assert algo.policy is not None
         mocked_torch.load.called_once_with(load_path)
 
-    @mock.patch("relezoo.algorithms.reinforce.discrete.torch.from_numpy")
+    @mock.patch("relezoo.algorithms.xentropy.discrete.torch.from_numpy")
     @mock.patch("torch.nn.Module")
     @mock.patch("gym.Env")
     def test_play(self, mock_env, mock_net, mock_from_numpy):
         dummy_parameters = [nn.Parameter(torch.tensor([1., 2.]))]
         mock_net.parameters.return_value = dummy_parameters
-        policy = ReinforceDiscretePolicy(mock_net)
-        algo = ReinforceDiscrete(policy)
+        policy = CrossEntropyDiscretePolicy(mock_net)
+        algo = CrossEntropyDiscrete(policy)
         policy.act = mock.MagicMock(side_effect=torch.Tensor([0, 1, 1, 0]))
         steps = [
             (np.array([1, 1, 1]), 1, False, None),
@@ -92,14 +92,14 @@ class TestReinforceDiscrete:
 
     @mock.patch("gym.Env")
     def test_play_no_policy_should_fail(self, mock_env):
-        algo = ReinforceDiscrete()
+        algo = CrossEntropyDiscrete()
         with pytest.raises(AssertionError) as e:
             algo.play(mock_env, 1)
             assert e.value == "The policy is not defined."
 
     @mock.patch("gym.Env")
     def test_train_no_policy_should_fail(self, mock_env):
-        algo = ReinforceDiscrete()
+        algo = CrossEntropyDiscrete()
         ctx = Context({
             "epochs": MAX_TEST_EPISODES,
             "render": False,

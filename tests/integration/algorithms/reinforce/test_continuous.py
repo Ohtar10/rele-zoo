@@ -23,7 +23,7 @@ class TestReinforceContinuousInt:
         policy = build_policy(env)
         algo = ReinforceContinuous(policy=policy, logger=mock_logger)
         ctx = Context({
-            "episodes": MAX_TEST_EPISODES,
+            "epochs": MAX_TEST_EPISODES,
             "render": False,
             "gpu": False
         })
@@ -36,7 +36,7 @@ class TestReinforceContinuousInt:
         policy = build_policy(env)
         algo = ReinforceContinuous(policy=policy, logger=mock_logger)
         ctx = Context({
-            "episodes": MAX_TEST_EPISODES,
+            "epochs": MAX_TEST_EPISODES,
             "render": False,
             "gpu": False
         })

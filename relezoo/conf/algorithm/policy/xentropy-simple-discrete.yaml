@@ -1,0 +1,4 @@
+_target_: relezoo.algorithms.xentropy.discrete.CrossEntropyDiscretePolicy
+defaults:
+  - network: simple-fc
+learning_rate: 1e-2

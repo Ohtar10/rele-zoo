@@ -150,15 +150,15 @@ class ReinforceContinuous(Algorithm):
         """
         assert self.policy is not None, "The policy is not defined."
         self.policy.set_mode(NetworkMode.TRAIN)
-        episodes = context.episodes
-        render = context.render
+        epochs = context.epochs
+        render = context.epochs
         device = "cuda" if context.gpu and torch.cuda.is_available() else "cpu"
         self.policy.to(device)
-        with tqdm(total=episodes) as progress:
-            for i in range(1, episodes + 1):
-                is_last_episode = i == episodes
+        with tqdm(total=epochs) as progress:
+            for i in range(1, epochs + 1):
+                is_last_epoch = i == epochs
                 batch_loss, batch_returns, batch_lens = self._train_epoch(env, self.batch_size)
-                if eval_env is not None and (i % context.eval_every == 0 or is_last_episode):  # evaluate every 10 epochs
+                if eval_env is not None and (i % context.eval_every == 0 or is_last_epoch):  # evaluate every 10 epochs
                     self._evaluate(eval_env, i, render)
                 progress.set_postfix({
                     "loss": f"{batch_loss:.2f}",
@@ -268,14 +268,14 @@ class ReinforceContinuous(Algorithm):
         """
         assert self.policy is not None, "The policy is not defined."
         self.policy.set_mode(NetworkMode.EVAL)
-        episodes = context.episodes
+        epochs = context.epochs
         render = context.render
         device = "cuda" if context.gpu and torch.cuda.is_available() else "cpu"
         self.policy.to(device)
-        with tqdm(total=episodes) as progress:
+        with tqdm(total=epochs) as progress:
             ep_rewards = []
             ep_lengths = []
-            for i in range(1, episodes + 1):
+            for i in range(1, epochs + 1):
                 obs = env.reset()
                 ep_length = 1
                 ep_reward = 0

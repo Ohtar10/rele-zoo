@@ -32,8 +32,8 @@ class TestContext:
                 assert context['mode'] == "train"
                 assert context.eval_every == 10
                 assert context['eval_every'] == 10
-                assert context.episodes == 50
-                assert context['episodes'] == 50
+                assert context.epochs == 50
+                assert context['epochs'] == 50
 
             except Exception as e:
                 pytest.fail(f"It should not have failed. {e}")
