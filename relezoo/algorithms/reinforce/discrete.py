@@ -249,8 +249,9 @@ class ReinforceDiscrete(Algorithm):
     def save(self, save_path: str):
         self.policy.save(save_path)
 
-    def load(self, load_path: str):
-        net = torch.load(load_path)
+    def load(self, load_path: str, context: Optional[Context] = None):
+        device = "cuda" if context and context.gpu and torch.cuda.is_available() else "cpu"
+        net = torch.load(load_path, map_location=torch.device(device))
         self.policy = ReinforceDiscretePolicy(net)
 
     def play(self, env: Environment, context: Context) -> (float, int):

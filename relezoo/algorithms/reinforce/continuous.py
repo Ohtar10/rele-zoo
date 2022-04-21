@@ -301,6 +301,7 @@ class ReinforceContinuous(Algorithm):
     def save(self, save_path: str) -> None:
         self.policy.save(save_path)
 
-    def load(self, load_path: str) -> None:
-        net = torch.load(load_path)
+    def load(self, load_path: str, context: Optional[Context] = None) -> None:
+        device = "cuda" if context and context.gpu and torch.cuda.is_available() else "cpu"
+        net = torch.load(load_path, map_location=torch.device(device))
         self.policy = ReinforceContinuousPolicy(net)

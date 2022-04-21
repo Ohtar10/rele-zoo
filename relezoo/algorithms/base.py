@@ -25,7 +25,7 @@ class Algorithm(ABC):
         pass
 
     @abstractmethod
-    def load(self, save_path: str) -> None:
+    def load(self, save_path: str, context: Optional[Context] = None) -> None:
         pass
 
 

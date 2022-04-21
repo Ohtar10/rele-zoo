@@ -63,7 +63,7 @@ class Runner:
             result = self.algorithm.train(self.env_train, ctx, self.env_test)
             self.algorithm.save(os.path.join(self.workdir, ctx.checkpoints))
         elif "play" == ctx.mode:
-            self.algorithm.load(ctx.checkpoints)
+            self.algorithm.load(ctx.checkpoints, ctx)
             result = self.algorithm.play(self.env_test, ctx)
 
         return result
