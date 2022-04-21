@@ -123,12 +123,14 @@ class CrossEntropyDiscrete(Algorithm):
             rewards = rewards.reshape(-1, 1)  # reward of dim 1
 
             batch_actions = [
-                np.concatenate([agent, action.reshape(1, -1)]) if isinstance(agent, np.ndarray) else action.reshape(1, -1)
+                np.concatenate([agent, action.reshape(1, -1)]) if isinstance(agent, np.ndarray)
+                else action.reshape(1, -1)
                 for agent, action in zip(batch_actions, actions)
             ]
 
             batch_returns = [
-                np.concatenate([agent, reward.reshape(1, -1)]) if isinstance(agent, np.ndarray) else reward.reshape(1,                                                                                                      -1)
+                np.concatenate([agent, reward.reshape(1, -1)]) if isinstance(agent, np.ndarray)
+                else reward.reshape(1, -1)
                 for agent, reward in zip(batch_returns, rewards)]
 
             if np.any(dones):

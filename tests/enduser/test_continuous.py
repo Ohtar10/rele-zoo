@@ -9,14 +9,21 @@ from tests.utils.common import MAX_TEST_EPISODES, BASELINES_PATH
 
 
 @pytest.mark.cli
+@pytest.mark.parametrize(
+    "algorithm",
+    [
+        "reinforce-continuous"
+    ]
+)
 class TestReinforceContinuousCli:
-    def test_reinforce_continuous(self) -> None:
+
+    def test_train(self, algorithm) -> None:
         with initialize_config_module(config_module="relezoo.conf"):
             cfg = compose(config_name="config",
                           overrides=[
                               "environments@env_train=pendulum",
                               "environments@env_test=pendulum",
-                              "algorithm=reinforce-continuous"
+                              f"algorithm={algorithm}"
                           ])
             try:
                 # test for only three episodes instead of the default
@@ -28,14 +35,18 @@ class TestReinforceContinuousCli:
             except Exception as e:
                 pytest.fail(f"It should not have failed. {e}")
 
+    @pytest.mark.skip(reason="Not yet implemented")
+    def test_train_with_parallel_env(self, algorithm) -> None:
+        pass
+
     @pytest.mark.skip(reason="Baseline not ready")
-    def test_reinforce_continuous_play(self) -> None:
+    def test_play(self, algorithm) -> None:
         with initialize_config_module(config_module="relezoo.conf"):
             cfg = compose(config_name="config",
                           overrides=[
                               "environments@env_train=pendulum",
                               "environments@env_test=pendulum",
-                              "algorithm=reinforce-continuous"
+                              f"algorithm={algorithm}"
                           ])
             try:
                 # test for only three episodes instead of the default
@@ -46,13 +57,13 @@ class TestReinforceContinuousCli:
             except Exception as e:
                 pytest.fail(f"It should not have failed. {e}")
 
-    def test_reinforce_continuous_with_render(self) -> None:
+    def test_train_with_render(self, algorithm) -> None:
         with initialize_config_module(config_module="relezoo.conf"):
             cfg = compose(config_name="config",
                           overrides=[
                               "environments@env_train=pendulum",
                               "environments@env_test=pendulum",
-                              "algorithm=reinforce-continuous"
+                              f"algorithm={algorithm}"
                           ])
             try:
                 cfg.context.epochs = MAX_TEST_EPISODES

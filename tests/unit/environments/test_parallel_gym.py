@@ -49,9 +49,9 @@ class TestParallelGym:
         l_env: gym.Env = gym.make(env_name)
         p_env = ParallelGym(env_name, num_envs)
         if isinstance(l_env.action_space, gym.spaces.Box):
-            actions = np.zeros(p_env.get_action_space(), dtype=np.int)
+            actions = np.zeros(p_env.get_action_space(), dtype=int)
         elif isinstance(l_env.action_space, gym.spaces.Discrete):
-            actions = np.zeros((num_envs, 1), dtype=np.int)
+            actions = np.zeros((num_envs, 1), dtype=int)
         else:
             pytest.fail("Action space not matching")
 

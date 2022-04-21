@@ -9,12 +9,19 @@ from tests.utils.common import BASELINES_PATH, MAX_TEST_EPISODES
 
 
 @pytest.mark.cli
-class TestXEntropyDiscreteCli:
-    def test_train(self) -> None:
+@pytest.mark.parametrize(
+    "algorithm",
+    [
+        "xentropy-discrete",
+        "reinforce-discrete"
+    ]
+)
+class TestDiscreteAlgorithmsCli:
+    def test_train(self, algorithm) -> None:
         with initialize_config_module(config_module="relezoo.conf"):
             cfg = compose(config_name="config",
                           overrides=[
-                              "algorithm=xentropy-discrete"
+                              f"algorithm={algorithm}"
                           ])
             try:
                 # test for only three episodes instead of the default
@@ -26,11 +33,14 @@ class TestXEntropyDiscreteCli:
             except Exception as e:
                 pytest.fail(f"It should not have failed. {e}")
 
-    def test_train_with_parallel_env(self) -> None:
+    def test_train_with_parallel_env(self, algorithm) -> None:
+        if algorithm == 'reinforce-discrete':
+            pytest.skip('reinforce for parallel envs not yet implemented')
+
         with initialize_config_module(config_module="relezoo.conf"):
             cfg = compose(config_name="config",
                           overrides=[
-                              "algorithm=xentropy-discrete",
+                              f"algorithm={algorithm}",
                               "environments@env_train=parallel-cartpole"
                           ])
             try:
@@ -50,11 +60,11 @@ class TestXEntropyDiscreteCli:
             "acrobot"
         ]
     )
-    def test_play(self, environment) -> None:
+    def test_play(self, environment, algorithm) -> None:
         with initialize_config_module(config_module="relezoo.conf"):
             cfg = compose(config_name="config",
                           overrides=[
-                              "algorithm=xentropy-discrete",
+                              f"algorithm={algorithm}",
                               f"environments@env_train={environment}",
                               f"environments@env_test={environment}"
                           ]
@@ -68,11 +78,11 @@ class TestXEntropyDiscreteCli:
             except Exception as e:
                 pytest.fail(f"It should not have failed. {e}")
 
-    def test_train_with_render(self) -> None:
+    def test_train_with_render(self, algorithm) -> None:
         with initialize_config_module(config_module="relezoo.conf"):
             cfg = compose(config_name="config",
                           overrides=[
-                              "algorithm=xentropy-discrete"
+                              f"algorithm={algorithm}"
                           ])
             try:
                 # test for only three episodes instead of the default
