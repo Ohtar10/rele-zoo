@@ -1,3 +1,5 @@
-_target_: relezoo.logging.tensorboard.TensorboardLogging
-backend_class: torch.utils.tensorboard.writer.SummaryWriter
-log_dir: tensorboard
+_target_: relezoo.logging.wandb.WandbLogging
+watch_grads: False
+project: Relezoo
+name: my-experiment-name
+tags: ["relezoo", "cartpole"]

@@ -13,7 +13,7 @@ from relezoo.logging.base import Logging
 
 class TensorboardLogging(Logging):
 
-    def __init__(self, workdir: str, backend_class: Union[str, TXSummaryWriter, TorchSummaryWriter], log_dir: str):
+    def __init__(self, backend_class: Union[str, TXSummaryWriter, TorchSummaryWriter], log_dir: str):
         super(TensorboardLogging, self).__init__()
         if isinstance(backend_class, str):
             backend_module = ".".join(backend_class.split(".")[:-1])
@@ -21,7 +21,7 @@ class TensorboardLogging(Logging):
             backend_module = importlib.import_module(backend_module)
             clazz = getattr(backend_module, backend_class)
             self.backend: Union[TXSummaryWriter, TorchSummaryWriter] = \
-                clazz(os.path.join(workdir, log_dir))
+                clazz(os.path.join(os.getcwd(), log_dir))
         else:
             self.backend = backend_class
 

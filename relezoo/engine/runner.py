@@ -35,7 +35,7 @@ class Runner:
         self.cfg = cfg
         self.env_train: Environment = instantiate(cfg.env_train)
         self.env_test: Environment = instantiate(cfg.env_test)
-        self.logger = instantiate(cfg.logger, workdir=self.workdir)
+        self.logger = instantiate(cfg.logger)
 
         if self.cfg.network.infer_in_shape:
             # TODO this is not scalable. Expects specifics from the config

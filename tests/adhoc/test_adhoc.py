@@ -4,7 +4,7 @@ from hydra import compose, initialize_config_module
 from relezoo.cli import hcli
 
 
-# @pytest.mark.skip(reason="Debug/Manual only Test")
+@pytest.mark.skip(reason="Debug/Manual only Test")
 class TestAdhoc:
     """Test Adhoc.
 

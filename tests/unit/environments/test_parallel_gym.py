@@ -19,6 +19,7 @@ def test_case(request):
     return request.param
 
 
+@pytest.mark.unit
 class TestParallelGym:
 
     def test_create_parallel_environments(self, test_case):
