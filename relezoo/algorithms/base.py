@@ -17,6 +17,10 @@ class Algorithm(ABC):
         pass
 
     @abstractmethod
+    def _evaluate(self, env: Environment, render: bool = False):
+        pass
+
+    @abstractmethod
     def play(self, env: Environment, context: Context) -> (float, int):
         pass
 

@@ -1,14 +1,14 @@
 import os.path
-from typing import Optional, Dict, Any
+from typing import Optional
 
 import numpy as np
 import torch
 import torch.optim as optim
-from tensorboardX import SummaryWriter
 from tqdm import tqdm
 
 from relezoo.algorithms.base import Policy, Algorithm
 from relezoo.environments.base import Environment
+from relezoo.logging.base import Logging
 from relezoo.networks.base import Network
 from relezoo.utils.network import NetworkMode
 from relezoo.utils.structure import Context
@@ -66,7 +66,7 @@ class ReinforceDiscretePolicy(Policy):
         logits = self.net(obs)
         return torch.distributions.Categorical(logits=logits)
 
-    def learn(self, batch_obs: torch.Tensor, batch_actions: torch.Tensor, batch_weights: torch.Tensor):
+    def learn(self, batch_obs: torch.Tensor, batch_actions: torch.Tensor, batch_weights: Optional[torch.Tensor] = None):
         """learn.
         Performs a learning step over the underlying neural
         network using the provided batch of observations, actions, and weights (episode returns)."""
@@ -117,13 +117,11 @@ class ReinforceDiscrete(Algorithm):
             self,
             policy: Optional[ReinforceDiscretePolicy] = None,
             batch_size: int = 5000,
-            logger: Optional[SummaryWriter] = None,
-            play_env: Optional[Environment] = None):
+            logger: Optional[Logging] = None):
         self.batch_size = batch_size
         self.policy = policy
         self.logger = logger
         self.train_steps = 0
-        self.play_env = play_env
 
     def train(self, env: Environment, context: Context, eval_env: Optional[Environment] = None):
         """train
@@ -142,7 +140,7 @@ class ReinforceDiscrete(Algorithm):
                 is_last_epoch = i == epochs
                 batch_loss, batch_returns, batch_lens = self._train_epoch(env, self.batch_size)
                 if eval_env is not None and (i % context.eval_every == 0 or is_last_epoch):  # evaluate every 10 epochs
-                    self._evaluate(eval_env, i, render)
+                    self._evaluate(eval_env, render)
                 progress.set_postfix({
                     "loss": f"{batch_loss:.2f}",
                     "score": f"{np.mean(batch_returns):.2f}",
@@ -206,7 +204,7 @@ class ReinforceDiscrete(Algorithm):
 
         return batch_loss, batch_returns, batch_lens
 
-    def _evaluate(self, env: Environment, step: int, render: bool = False):
+    def _evaluate(self, env: Environment, render: bool = False):
         render_frames = []
         episode_return = 0
         obs = env.reset()
@@ -220,31 +218,18 @@ class ReinforceDiscrete(Algorithm):
             if done:
                 break
 
-        self.logger.add_scalar("evaluation/return", episode_return, global_step=step)
-        self.logger.add_scalar('evaluation/episode_length', len(render_frames), global_step=step)
+        self.logger.log_scalar("evaluation/return", episode_return, step=self.train_steps)
+        self.logger.log_scalar('evaluation/episode_length', len(render_frames), step=self.train_steps)
 
         if render:
-            # T x H x W x C
-            sequence = np.array(render_frames)
-            # T x C x H x W
-            sequence = np.transpose(sequence, [0, 3, 1, 2])
-            # B x T x C x H x W
-            sequence = np.expand_dims(sequence, axis=0)
-            self.logger.add_video("live-play", vid_tensor=sequence, global_step=step, fps=8)
+            self.logger.log_video_from_frames("live-play", render_frames, fps=16, step=self.train_steps)
 
     def _log(self, batch_loss, batch_returns, batch_lens):
         if self.logger is not None:
-            self.logger.add_scalar('training/loss', batch_loss, self.train_steps)
-            self.logger.add_scalar('training/return', np.mean(batch_returns), self.train_steps)
-            self.logger.add_scalar('training/episode_length', np.mean(batch_lens), self.train_steps)
-
-            for name, p in self.policy.net.named_parameters():
-                if p.grad is None:
-                    continue
-                name = name.replace(".", "/")
-                self.logger.add_histogram(
-                    tag=f"grads/{name}", values=p.grad.detach().cpu().numpy(), global_step=self.train_steps
-                )
+            self.logger.log_scalar('training/loss', batch_loss, self.train_steps)
+            self.logger.log_scalar('training/return', np.mean(batch_returns), self.train_steps)
+            self.logger.log_scalar('training/episode_length', np.mean(batch_lens), self.train_steps)
+            self.logger.log_grads(self.policy.net, self.train_steps)
 
     def save(self, save_path: str):
         self.policy.save(save_path)

@@ -31,3 +31,4 @@ dependencies:
       - hydra-core==1.1.1
       - ray[default]
       - prometheus_client==0.13.1
+      - wandb==0.12.15

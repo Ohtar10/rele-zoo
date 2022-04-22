@@ -1,2 +1,3 @@
-_target_: torch.utils.tensorboard.writer.SummaryWriter
+_target_: relezoo.logging.tensorboard.TensorboardLogging
+backend_class: torch.utils.tensorboard.writer.SummaryWriter
 log_dir: tensorboard

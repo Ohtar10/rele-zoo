@@ -1,15 +1,16 @@
+import os
 from collections import namedtuple, deque
 from typing import Optional, Any
-import os
+
+import numpy as np
 import torch
 import torch.nn as nn
 from torch import optim
-from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
-import numpy as np
 
 from relezoo.algorithms.base import Algorithm, Policy
 from relezoo.environments.base import Environment
+from relezoo.logging.base import Logging
 from relezoo.networks.base import Network
 from relezoo.utils.network import NetworkMode
 from relezoo.utils.structure import Context
@@ -65,7 +66,7 @@ class CrossEntropyDiscrete(Algorithm):
             batch_size: int = 16,
             elite_percentile: float = 70.,
             mean_return_window: int = 100,
-            logger: Optional[SummaryWriter] = None
+            logger: Optional[Logging] = None
     ):
         self.policy = policy
         self.batch_size = batch_size
@@ -87,7 +88,7 @@ class CrossEntropyDiscrete(Algorithm):
                 is_last_epoch = i == epochs
                 batch_loss, batch_returns, batch_lens = self._train_epoch(env, self.batch_size)
                 if eval_env is not None and (i % context.eval_every == 0 or is_last_epoch):  # evaluate every 10 epochs
-                    self._evaluate(eval_env, i, render)
+                    self._evaluate(eval_env, render)
                 progress.set_postfix({
                     "loss": f"{batch_loss:.2f}",
                     "score": f"{np.mean(batch_returns):.2f}",
@@ -183,10 +184,7 @@ class CrossEntropyDiscrete(Algorithm):
 
         return train_obs, train_act, elite_rewards, elite_lens
 
-    def _evaluate(self,
-                  env: Environment,
-                  step: int,
-                  render: bool = False):
+    def _evaluate(self, env: Environment, render: bool = False):
         render_frames = []
         episode_return = 0
         obs = env.reset()
@@ -201,20 +199,13 @@ class CrossEntropyDiscrete(Algorithm):
                 break
 
         self.avg_return_pool.append(episode_return)
-        self.logger.add_scalar("evaluation/return", episode_return, global_step=step)
-        self.logger.add_scalar('evaluation/episode_length', len(render_frames), global_step=step)
-        self.logger.add_scalar(f'evaluation/mean_return_over_{self.mean_return_window}_episodes',
-                               np.mean(self.avg_return_pool), global_step=step)
+        self.logger.log_scalar("evaluation/return", episode_return, step=self.train_steps)
+        self.logger.log_scalar('evaluation/episode_length', len(render_frames), step=self.train_steps)
+        self.logger.log_scalar(f'evaluation/mean_return_over_{self.mean_return_window}_episodes',
+                               np.mean(self.avg_return_pool), step=self.train_steps)
 
         if render:
-            # T x H x W x C
-            sequence = np.array(render_frames)
-            # T x C x H x W
-            sequence = np.transpose(sequence, [0, 3, 1, 2])
-            # B x T x C x H x W
-            sequence = np.expand_dims(sequence, axis=0)
-            sequence = torch.tensor(sequence)
-            self.logger.add_video("live-play", vid_tensor=sequence, global_step=step, fps=8)
+            self.logger.log_video_from_frames("live-play", render_frames, fps=16, step=self.train_steps)
 
     def play(self, env: Environment, context: Context) -> (float, int):
         assert self.policy is not None, "The policy is not defined."
@@ -251,17 +242,10 @@ class CrossEntropyDiscrete(Algorithm):
 
     def _log(self, batch_loss, batch_returns, batch_lens):
         if self.logger is not None:
-            self.logger.add_scalar('training/loss', batch_loss, self.train_steps)
-            self.logger.add_scalar('training/return', np.mean(batch_returns), self.train_steps)
-            self.logger.add_scalar('training/mean_episode_length', np.mean(batch_lens), self.train_steps)
-
-            for name, p in self.policy.net.named_parameters():
-                if p.grad is None:
-                    continue
-                name = name.replace(".", "/")
-                self.logger.add_histogram(
-                    tag=f"grads/{name}", values=p.grad.detach().cpu().numpy(), global_step=self.train_steps
-                )
+            self.logger.log_scalar('training/loss', batch_loss, self.train_steps)
+            self.logger.log_scalar('training/return', np.mean(batch_returns), self.train_steps)
+            self.logger.log_scalar('training/mean_episode_length', np.mean(batch_lens), self.train_steps)
+            self.logger.log_grads(self.policy.net, self.train_steps)
 
     def save(self, save_path: str) -> None:
         self.policy.save(save_path)

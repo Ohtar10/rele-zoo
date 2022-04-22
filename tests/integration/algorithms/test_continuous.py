@@ -2,6 +2,7 @@ import mock
 import pytest
 from relezoo.algorithms.reinforce.continuous import ReinforceContinuousPolicy, ReinforceContinuous
 from relezoo.environments import GymWrapper
+from relezoo.logging.base import Logging
 from relezoo.utils.structure import Context
 from tests.utils.common import MAX_TEST_EPISODES
 from tests.utils.netpol import build_net
@@ -23,10 +24,11 @@ def build_policy(env: GymWrapper, policy_class, learning_rate: float = 1e-2):
     ]
 )
 class TestContinuousAlgorithmsIntegration:
-    @mock.patch("tensorboardX.SummaryWriter")
-    def test_smoke_train_reinforce(self, mock_logger, algo_class, policy_class):
+
+    def test_smoke_train_reinforce(self, algo_class, policy_class):
         env = GymWrapper("Pendulum-v1")
         policy = build_policy(env, policy_class)
+        mock_logger = mock.MagicMock(Logging)
         algo = algo_class(policy=policy, logger=mock_logger)
         ctx = Context({
             "epochs": MAX_TEST_EPISODES,
@@ -34,11 +36,11 @@ class TestContinuousAlgorithmsIntegration:
             "gpu": False
         })
         algo.train(env, ctx)
-        assert mock_logger.add_scalar.call_count == MAX_TEST_EPISODES * 3
+        assert mock_logger.log_scalar.call_count == MAX_TEST_EPISODES * 3
 
-    @mock.patch("tensorboardX.SummaryWriter")
-    def test_smoke_play_reinforce(self, mock_logger, algo_class, policy_class):
+    def test_smoke_play_reinforce(self, algo_class, policy_class):
         env = GymWrapper("Pendulum-v1")
+        mock_logger = mock.MagicMock(Logging)
         policy = build_policy(env, policy_class)
         algo = algo_class(policy=policy, logger=mock_logger)
         ctx = Context({

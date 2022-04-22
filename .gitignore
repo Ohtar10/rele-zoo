@@ -135,3 +135,5 @@ report.xml
 outputs/
 tensorboard/
 checkpoints/
+runs/
+wandb/
