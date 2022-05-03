@@ -1,6 +1,7 @@
 import gym
 import pytest
 import numpy as np
+import ray
 
 from relezoo.environments.parallel import ParallelGym
 
@@ -12,6 +13,13 @@ parameters = [
     "LunarLander-v2",
     "Pendulum-v1"
 ]
+
+
+@pytest.fixture(autouse=True)
+def run_around_tests():
+    ray.init()
+    yield
+    ray.shutdown()
 
 
 @pytest.fixture(params=parameters)
@@ -60,5 +68,3 @@ class TestParallelGym:
         assert obs.shape == p_env.get_observation_space()
         assert rewards.shape == (num_envs, 1)
         assert dones.shape == (num_envs, 1)
-
-

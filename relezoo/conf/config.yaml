@@ -5,6 +5,7 @@ defaults:
   - algorithm: reinforce-discrete
   - logger: tensorboard
   - override hydra/help: relezoo-help
+  - override hydra/launcher: ray
 
 ##########################
 ## Experiment wise vars ##
@@ -29,10 +30,12 @@ network:
 ### Runtime wise vars ####
 ##########################
 ray:
-  cpus: 4
-  #4GB in bytes
-  memory: 4294967296
-  dashboard_port: 8265
+  init:
+    num_cpus: 4
+    #4GB in bytes
+    _memory: 4294967296
+    dashboard_port: 8265
+    ignore_reinit_error: True
 
 hydra:
   run:

@@ -1,0 +1,7 @@
+ray:
+    init:
+        num_cpus: 4
+        #4GB in bytes
+        _memory: 4294967296
+        dashboard_port: 8265
+        ignore_reinit_error: True
