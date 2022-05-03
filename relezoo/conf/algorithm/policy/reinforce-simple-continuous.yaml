@@ -1,4 +1,4 @@
-_target_: relezoo.algorithms.reinforce.continuous.ReinforceContinuousPolicy
+_target_: relezoo.algorithms.reinforce.ReinforceContinuousPolicy
 defaults:
   - network: simple-fc
 learning_rate: 1e-5

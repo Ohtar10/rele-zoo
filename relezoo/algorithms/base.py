@@ -3,6 +3,7 @@ from typing import Optional, Any
 
 import numpy as np
 import torch
+from kink import inject
 from tqdm import tqdm
 
 from relezoo.environments.base import Environment
@@ -11,11 +12,15 @@ from relezoo.utils.network import NetworkMode
 from relezoo.utils.structure import Context
 
 
+@inject
 class Policy(ABC):
     """Policy.
 
     Represents a policy of an on-policy RL algorithm.
     """
+
+    def __init__(self, context: Context):
+        self.context = context
 
     @abstractmethod
     def act(self, obs: torch.Tensor) -> (torch.Tensor, int):
@@ -27,6 +32,10 @@ class Policy(ABC):
 
     @abstractmethod
     def save(self, save_path):
+        pass
+
+    @abstractmethod
+    def load(self, load_path):
         pass
 
     @abstractmethod
@@ -163,6 +172,5 @@ class Algorithm(ABC):
     def save(self, save_path: str) -> None:
         self.policy.save(save_path)
 
-    @abstractmethod
-    def load(self, save_path: str, context: Optional[Context] = None) -> None:
-        pass
+    def load(self, load_path: str) -> None:
+        self.policy.load(load_path)

@@ -1,7 +1,7 @@
 import mock
 import pytest
 from kink import di
-from relezoo.algorithms.reinforce.continuous import ReinforceContinuousPolicy, ReinforceContinuous
+from relezoo.algorithms.reinforce import Reinforce, ReinforceContinuousPolicy
 from relezoo.environments import GymWrapper
 from relezoo.logging.base import Logging
 from relezoo.utils.structure import Context
@@ -34,7 +34,7 @@ def build_policy(env: GymWrapper, policy_class, learning_rate: float = 1e-2):
 @pytest.mark.parametrize(
     ("algo_class", "policy_class"),
     [
-        (ReinforceContinuous, ReinforceContinuousPolicy)
+        (Reinforce, ReinforceContinuousPolicy)
     ]
 )
 class TestContinuousAlgorithmsIntegration:
@@ -51,7 +51,7 @@ class TestContinuousAlgorithmsIntegration:
         env = GymWrapper("Pendulum-v1")
         policy = build_policy(env, policy_class)
         algo = algo_class(policy=policy)
-        rewards, lengths = algo.play(env)
+        _, rewards, lengths = algo.play(env)
         assert isinstance(rewards, float)
         assert isinstance(lengths, float)
         assert rewards != 0.0

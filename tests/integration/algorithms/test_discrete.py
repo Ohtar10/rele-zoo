@@ -2,7 +2,8 @@ import mock
 import pytest
 from kink import di
 
-from relezoo.algorithms.reinforce.discrete import ReinforceDiscrete, ReinforceDiscretePolicy
+from relezoo.algorithms.reinforce.discrete import ReinforceDiscretePolicy
+from relezoo.algorithms.reinforce.core import Reinforce
 from relezoo.algorithms.xentropy import CrossEntropyDiscretePolicy
 from relezoo.algorithms.xentropy import CrossEntropyMethod
 from relezoo.environments import GymWrapper
@@ -40,7 +41,7 @@ def build_policy(env: Environment, policy_class, learning_rate: float = 1e-2):
     ("algo_class", "policy_class"),
     [
         (CrossEntropyMethod, CrossEntropyDiscretePolicy),
-        (ReinforceDiscrete, ReinforceDiscretePolicy)
+        (Reinforce, ReinforceDiscretePolicy)
     ]
 )
 class TestDiscreteAlgorithmsIntegration:

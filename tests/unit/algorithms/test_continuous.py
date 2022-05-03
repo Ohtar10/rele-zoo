@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 from kink import di
 
-from relezoo.algorithms.reinforce.continuous import ReinforceContinuous, ReinforceContinuousPolicy
+from relezoo.algorithms.reinforce import Reinforce, ReinforceContinuousPolicy
 from relezoo.logging.base import Logging
 from relezoo.utils.structure import Context
 from tests.utils.common import MAX_TEST_EPISODES
@@ -28,7 +28,7 @@ def run_around_tests():
 @pytest.mark.parametrize(
     ("algo_class", "policy_class"),
     [
-        (ReinforceContinuous, ReinforceContinuousPolicy)
+        (Reinforce, ReinforceContinuousPolicy)
     ]
 )
 class TestContinuousAlgorithms:
@@ -53,7 +53,7 @@ class TestContinuousAlgorithms:
 
     @mock.patch("torch.nn.Module")
     def test_save_policy(self, mock_net, algo_class, policy_class):
-        with mock.patch(".".join([algo_class.__module__, "torch"])) as mocked_torch:
+        with mock.patch(".".join([policy_class.__module__, "torch"])) as mocked_torch:
             dummy_parameters = [nn.Parameter(torch.tensor([1., 2.]))]
             mock_net.parameters.return_value = dummy_parameters
             policy = policy_class(mock_net)
@@ -63,11 +63,12 @@ class TestContinuousAlgorithms:
 
     @mock.patch("torch.nn.Module")
     def test_load_agent(self, mock_net, algo_class, policy_class):
-        with mock.patch(".".join([algo_class.__module__, "torch"])) as mocked_torch:
+        with mock.patch(".".join([policy_class.__module__, "torch"])) as mocked_torch:
             dummy_parameters = [nn.Parameter(torch.tensor([1., 2.]))]
             mock_net.parameters.return_value = dummy_parameters
             mocked_torch.load.return_value = mock_net
-            algo = algo_class()
+            policy = policy_class(mock_net)
+            algo = algo_class(policy=policy)
             load_path = "load-path"
             algo.load(load_path)
             assert algo.policy is not None
@@ -76,7 +77,7 @@ class TestContinuousAlgorithms:
     @mock.patch("torch.nn.Module")
     @mock.patch("gym.Env")
     def test_play(self, mock_env, mock_net, algo_class, policy_class):
-        with mock.patch(".".join([algo_class.__module__, "torch", "from_numpy"])) as mock_from_numpy:
+        with mock.patch(".".join([policy_class.__module__, "torch", "from_numpy"])) as mock_from_numpy:
             dummy_parameters = [nn.Parameter(torch.tensor([1., 2.]))]
             mock_net.parameters.return_value = dummy_parameters
             policy = policy_class(mock_net)
@@ -95,7 +96,7 @@ class TestContinuousAlgorithms:
             ctx = di[Context]
             ctx.epochs = 1
 
-            avg_reward, avg_ep_length = algo.play(mock_env)
+            _, avg_reward, avg_ep_length = algo.play(mock_env)
             mock_env.reset.assert_called_once()
             assert policy.act.call_count == 4
             assert mock_env.step.call_count == 4

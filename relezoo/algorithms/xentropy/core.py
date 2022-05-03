@@ -1,5 +1,5 @@
 from collections import namedtuple, deque
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 import torch
@@ -21,7 +21,7 @@ class CrossEntropyMethod(Algorithm):
             self,
             logger: Logging,
             context: Context,
-            policy: Optional[CrossEntropyDiscretePolicy] = None,
+            policy: Union[CrossEntropyDiscretePolicy] = None,
             batch_size: int = 16,
             elite_percentile: float = 70.
     ):
@@ -119,8 +119,3 @@ class CrossEntropyMethod(Algorithm):
             self.logger.log_scalar('training/return', np.mean(batch_returns), self.train_steps)
             self.logger.log_scalar('training/mean_episode_length', np.mean(batch_lens), self.train_steps)
             self.logger.log_grads(self.policy.net, self.train_steps)
-
-    def load(self, save_path: str, context: Optional[Context] = None) -> None:
-        device = "cuda" if context and context.gpu and torch.cuda.is_available() else "cpu"
-        net = torch.load(save_path, map_location=torch.device(device))
-        self.policy = CrossEntropyDiscretePolicy(net)

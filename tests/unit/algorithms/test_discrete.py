@@ -5,7 +5,8 @@ import torch
 import torch.nn as nn
 from kink import di
 
-from relezoo.algorithms.reinforce.discrete import ReinforceDiscrete, ReinforceDiscretePolicy
+from relezoo.algorithms.reinforce.discrete import ReinforceDiscretePolicy
+from relezoo.algorithms.reinforce.core import Reinforce
 from relezoo.algorithms.xentropy import CrossEntropyDiscretePolicy
 from relezoo.algorithms.xentropy import CrossEntropyMethod
 from relezoo.logging.base import Logging
@@ -31,7 +32,7 @@ def run_around_tests():
     ("algo_class", "policy_class"),
     [
         (CrossEntropyMethod, CrossEntropyDiscretePolicy),
-        (ReinforceDiscrete, ReinforceDiscretePolicy)
+        (Reinforce, ReinforceDiscretePolicy)
     ]
 )
 class TestDiscreteAlgorithms:
@@ -67,11 +68,12 @@ class TestDiscreteAlgorithms:
     @mock.patch("torch.nn.Module")
     @mock.patch("gym.Env")
     def test_load_agent(self, mock_env, mock_net, algo_class, policy_class):
-        with mock.patch(".".join([algo_class.__module__, "torch"])) as mocked_torch:
+        with mock.patch(".".join([policy_class.__module__, "torch"])) as mocked_torch:
             dummy_parameters = [nn.Parameter(torch.tensor([1., 2.]))]
             mock_net.parameters.return_value = dummy_parameters
             mocked_torch.load.return_value = mock_net
-            algo = algo_class(mock_env)
+            policy = policy_class(mock_net)
+            algo = algo_class(mock_env, policy=policy)
             load_path = "load-path"
             algo.load(load_path)
             assert algo.policy is not None

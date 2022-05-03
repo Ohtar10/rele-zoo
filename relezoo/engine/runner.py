@@ -2,6 +2,7 @@ import os
 from kink import di, inject
 from pathlib import Path
 from typing import Any
+import logging
 
 from hydra.utils import instantiate
 from omegaconf import DictConfig
@@ -26,6 +27,7 @@ class Runner:
         self.env_train = None
         self.env_test = None
         self.algorithm = None
+        self.log = logging.getLogger(__name__)
 
     def init(self, cfg: DictConfig) -> Any:
         """init.
@@ -62,11 +64,18 @@ class Runner:
         result = None
         if "train" == ctx.mode:
             os.makedirs(Path(ctx.checkpoints), exist_ok=True)
-            result = self.algorithm.train(self.env_train, self.env_test)
-            self.algorithm.save(os.path.join(self.workdir, ctx.checkpoints))
+            try:
+                result = self.algorithm.train(self.env_train, self.env_test)
+            except KeyboardInterrupt:
+                self.log.info("Training interrupted. Saving current progress...")
+            finally:
+                self.algorithm.save(os.path.join(self.workdir, ctx.checkpoints))
         elif "play" == ctx.mode:
-            self.algorithm.load(ctx.checkpoints, ctx)
-            result = self.algorithm.play(self.env_test)
+            self.algorithm.load(ctx.checkpoints)
+            try:
+                result = self.algorithm.play(self.env_test)
+            except KeyboardInterrupt:
+                self.log.info("Play interrupted...")
 
         di.clear_cache()
         return result

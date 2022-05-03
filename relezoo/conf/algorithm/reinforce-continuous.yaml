@@ -1,4 +1,4 @@
-_target_: relezoo.algorithms.reinforce.continuous.ReinforceContinuous
+_target_: relezoo.algorithms.reinforce.Reinforce
 defaults:
-  - policy: simple-continuous
+  - policy: reinforce-simple-continuous
 batch_size: 5000

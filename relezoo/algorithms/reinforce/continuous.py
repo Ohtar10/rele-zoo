@@ -4,16 +4,11 @@ from typing import Optional, Dict, Any
 import numpy as np
 import torch
 import torch.optim as optim
-from kink import inject
-from tqdm import tqdm
 
-from relezoo.algorithms.base import Policy, Algorithm
-from relezoo.environments.base import Environment
-from relezoo.logging.base import Logging
+from relezoo.algorithms.base import Policy
 from relezoo.networks.base import Network
 from relezoo.utils.network import NetworkMode
 from relezoo.utils.noise import make_noise
-from relezoo.utils.structure import Context
 
 
 class ReinforceContinuousPolicy(Policy):
@@ -36,6 +31,7 @@ class ReinforceContinuousPolicy(Policy):
                  network: Network,
                  learning_rate: float = 1e-2,
                  noise: Optional[Dict[str, Any]] = None):
+        super(ReinforceContinuousPolicy, self).__init__()
         self.net = network
         self.optimizer = optim.Adam(self.net.parameters(), learning_rate)
         self.out_shape = network.get_output_shape()
@@ -116,180 +112,11 @@ class ReinforceContinuousPolicy(Policy):
         path = os.path.join(save_path, f"{self.__class__.__name__}.cpt")
         torch.save(self.net, path)
 
+    def load(self, load_path):
+        device = "cuda" if self.context and self.context.gpu and torch.cuda.is_available() else "cpu"
+        self.net = torch.load(load_path, map_location=torch.device(device))
+
     def to(self, device: str):
         self.device = device
         self.net = self.net.to(device)
         self.log_std = self.log_std.to(device)
-
-
-@inject
-class ReinforceContinuous(Algorithm):
-    """Reinforce
-    Container class for all the necessary logic
-    to train and use vanilla policy gradient aka REINFORCE
-    with gym environments."""
-    def __init__(self,
-                 logger: Logging,
-                 context: Context,
-                 policy: Optional[ReinforceContinuousPolicy] = None,
-                 batch_size: int = 5000):
-        super(ReinforceContinuous, self).__init__(context, logger, batch_size, policy)
-        self.batch_size = batch_size
-        self.policy = policy
-        self.logger = logger
-        self.train_steps = 0
-
-    def train(
-            self,
-            env: Environment,
-            eval_env: Optional[Environment] = None
-    ) -> None:
-        """train
-        The main training loop for the algorithm.
-
-        This is inspired by OpenAI Spinning up implementation.
-        """
-        assert self.policy is not None, "The policy is not defined."
-        self.policy.set_mode(NetworkMode.TRAIN)
-        epochs = self.context.epochs
-        render = self.context.epochs
-        device = "cuda" if self.context.gpu and torch.cuda.is_available() else "cpu"
-        self.policy.to(device)
-        with tqdm(total=epochs) as progress:
-            for i in range(1, epochs + 1):
-                is_last_epoch = i == epochs
-                batch_loss, batch_returns, batch_lens = self._train_epoch(env, self.batch_size)
-                if eval_env is not None and (i % self.context.eval_every == 0 or is_last_epoch):
-                    self._evaluate(eval_env, render)
-                progress.set_postfix({
-                    "loss": f"{batch_loss:.2f}",
-                    "score": f"{np.mean(batch_returns):.2f}",
-                    "episode_length": f"{np.mean(batch_lens):.2f}"
-                })
-                progress.update()
-                if self.logger is not None:
-                    self.logger.flush()
-        if self.logger is not None:
-            self.logger.close()
-
-    def _train_epoch(self,
-                     env: Environment,
-                     batch_size: int = 5000) -> (float, float, int):
-        batch_obs = []
-        batch_actions = []
-        batch_weights = []
-        batch_returns = []
-        batch_lens = []
-
-        obs = env.reset()
-        episode_rewards = []
-
-        while True:
-            batch_obs.append(obs.copy())
-
-            action = self.policy.act(torch.from_numpy(obs)).cpu().numpy()
-            obs, reward, done, _ = env.step(action)
-            batch_actions.append(action)
-            episode_rewards.append(reward)
-
-            if np.any(done):
-                episode_return, episode_length = sum(episode_rewards), len(episode_rewards)
-                batch_returns.append(episode_return)
-                batch_lens.append(episode_length)
-
-                batch_weights += [episode_return] * episode_length
-
-                obs, done, episode_rewards = env.reset(), False, []
-
-                if len(batch_obs) > batch_size:
-                    break
-
-        batch_loss = self.policy.learn(
-            torch.from_numpy(np.array(batch_obs)),
-            torch.from_numpy(np.array(batch_actions)),
-            torch.from_numpy(np.array(batch_weights))
-        )
-
-        self._log(batch_loss, batch_returns, batch_lens)
-        self.train_steps += 1
-
-        return batch_loss, batch_returns, batch_lens
-
-    def _evaluate(self, env: Environment, render: bool = False):
-        render_frames = []
-        episode_return = 0
-        obs = env.reset()
-        while True:
-            if render:
-                render_frames.append(env.render(mode='rgb_array'))
-
-            action = self.policy.act(torch.from_numpy(obs)).cpu().numpy()
-            obs, reward, done, _ = env.step(action)
-            episode_return += reward
-            if done:
-                break
-
-        self.logger.log_scalar("evaluation/return", episode_return, step=self.train_steps)
-        self.logger.log_scalar('evaluation/episode_length', len(render_frames), step=self.train_steps)
-
-        if render:
-            self.logger.log_video_from_frames("live-play", render_frames, step=self.train_steps)
-
-    def _log(self, batch_loss, batch_returns, batch_lens):
-        if self.logger is not None:
-            self.logger.log_scalar('loss', batch_loss, self.train_steps)
-            self.logger.log_scalar('return', np.mean(batch_returns), self.train_steps)
-            self.logger.log_scalar('episode_length', np.mean(batch_lens), self.train_steps)
-            self.logger.log_grads(self.policy.net, step=self.train_steps)
-
-            if self.policy.log_std.grad is not None:
-                p = self.policy.log_std
-                self.logger.log_histogram(
-                    "grads/log_std", p.grad.detach().cpu().numpy(), self.train_steps
-                )
-
-    def play(self, env: Environment) -> (float, int):
-        """play.
-        Play the environments using the current
-        policy, without learning, for as many
-        episodes as requested.
-        """
-        assert self.policy is not None, "The policy is not defined."
-        self.policy.set_mode(NetworkMode.EVAL)
-        epochs = self.context.epochs
-        render = self.context.render
-        device = "cuda" if self.context.gpu and torch.cuda.is_available() else "cpu"
-        self.policy.to(device)
-        with tqdm(total=epochs) as progress:
-            ep_rewards = []
-            ep_lengths = []
-            for i in range(1, epochs + 1):
-                obs = env.reset()
-                ep_length = 1
-                ep_reward = 0
-                while True:
-                    if render:
-                        env.render()
-
-                    action = self.policy.act(torch.from_numpy(obs)).cpu().numpy()
-                    obs, reward, done, _ = env.step(action)
-                    ep_reward += reward
-                    if done:
-                        break
-                    ep_length += 1
-                ep_lengths.append(ep_length)
-                ep_rewards.append(ep_reward)
-                progress.set_postfix({
-                    "Avg. reward": f"{np.mean(ep_rewards):.2f}",
-                    "Avg. ep length": f"{np.mean(ep_length):.2f}"
-                })
-                progress.update()
-        return np.mean(ep_rewards), np.mean(ep_length)
-
-    def save(self, save_path: str) -> None:
-        self.policy.save(save_path)
-
-    def load(self, load_path: str, context: Optional[Context] = None) -> None:
-        device = "cuda" if context and context.gpu and torch.cuda.is_available() else "cpu"
-        net = torch.load(load_path, map_location=torch.device(device))
-        self.policy = ReinforceContinuousPolicy(net)

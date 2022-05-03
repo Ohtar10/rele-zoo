@@ -15,6 +15,7 @@ class CrossEntropyDiscretePolicy(Policy):
     def __init__(self,
                  network: Network,
                  learning_rate: float = 1e-2):
+        super(CrossEntropyDiscretePolicy, self).__init__()
         self.net = network
         self.objective = nn.CrossEntropyLoss()
         self.optimizer = optim.Adam(self.net.parameters(), learning_rate)
@@ -44,6 +45,10 @@ class CrossEntropyDiscretePolicy(Policy):
     def save(self, save_path):
         path = os.path.join(save_path, f"{self.__class__.__name__}.cpt")
         torch.save(self.net, path)
+
+    def load(self, load_path):
+        device = "cuda" if self.context and self.context.gpu and torch.cuda.is_available() else "cpu"
+        self.net = torch.load(load_path, map_location=torch.device(device))
 
     def to(self, device: str) -> None:
         self.device = device
