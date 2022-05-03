@@ -4,6 +4,7 @@ from typing import Optional, Dict, Any
 import numpy as np
 import torch
 import torch.optim as optim
+from kink import inject
 from tqdm import tqdm
 
 from relezoo.algorithms.base import Policy, Algorithm
@@ -121,15 +122,18 @@ class ReinforceContinuousPolicy(Policy):
         self.log_std = self.log_std.to(device)
 
 
+@inject
 class ReinforceContinuous(Algorithm):
     """Reinforce
     Container class for all the necessary logic
     to train and use vanilla policy gradient aka REINFORCE
     with gym environments."""
     def __init__(self,
+                 logger: Logging,
+                 context: Context,
                  policy: Optional[ReinforceContinuousPolicy] = None,
-                 batch_size: int = 5000,
-                 logger: Optional[Logging] = None):
+                 batch_size: int = 5000):
+        super(ReinforceContinuous, self).__init__(context, logger, batch_size, policy)
         self.batch_size = batch_size
         self.policy = policy
         self.logger = logger
@@ -138,7 +142,6 @@ class ReinforceContinuous(Algorithm):
     def train(
             self,
             env: Environment,
-            context: Context,
             eval_env: Optional[Environment] = None
     ) -> None:
         """train
@@ -148,15 +151,15 @@ class ReinforceContinuous(Algorithm):
         """
         assert self.policy is not None, "The policy is not defined."
         self.policy.set_mode(NetworkMode.TRAIN)
-        epochs = context.epochs
-        render = context.epochs
-        device = "cuda" if context.gpu and torch.cuda.is_available() else "cpu"
+        epochs = self.context.epochs
+        render = self.context.epochs
+        device = "cuda" if self.context.gpu and torch.cuda.is_available() else "cpu"
         self.policy.to(device)
         with tqdm(total=epochs) as progress:
             for i in range(1, epochs + 1):
                 is_last_epoch = i == epochs
                 batch_loss, batch_returns, batch_lens = self._train_epoch(env, self.batch_size)
-                if eval_env is not None and (i % context.eval_every == 0 or is_last_epoch):  # evaluate every 10 epochs
+                if eval_env is not None and (i % self.context.eval_every == 0 or is_last_epoch):
                     self._evaluate(eval_env, render)
                 progress.set_postfix({
                     "loss": f"{batch_loss:.2f}",
@@ -245,7 +248,7 @@ class ReinforceContinuous(Algorithm):
                     "grads/log_std", p.grad.detach().cpu().numpy(), self.train_steps
                 )
 
-    def play(self, env: Environment, context: Context) -> (float, int):
+    def play(self, env: Environment) -> (float, int):
         """play.
         Play the environments using the current
         policy, without learning, for as many
@@ -253,9 +256,9 @@ class ReinforceContinuous(Algorithm):
         """
         assert self.policy is not None, "The policy is not defined."
         self.policy.set_mode(NetworkMode.EVAL)
-        epochs = context.epochs
-        render = context.render
-        device = "cuda" if context.gpu and torch.cuda.is_available() else "cpu"
+        epochs = self.context.epochs
+        render = self.context.render
+        device = "cuda" if self.context.gpu and torch.cuda.is_available() else "cpu"
         self.policy.to(device)
         with tqdm(total=epochs) as progress:
             ep_rewards = []

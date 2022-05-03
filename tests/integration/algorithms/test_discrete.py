@@ -1,14 +1,30 @@
 import mock
 import pytest
+from kink import di
 
 from relezoo.algorithms.reinforce.discrete import ReinforceDiscrete, ReinforceDiscretePolicy
-from relezoo.algorithms.xentropy.discrete import CrossEntropyDiscrete, CrossEntropyDiscretePolicy
+from relezoo.algorithms.xentropy import CrossEntropyDiscretePolicy
+from relezoo.algorithms.xentropy import CrossEntropyMethod
 from relezoo.environments import GymWrapper
 from relezoo.environments.base import Environment
 from relezoo.logging.base import Logging
 from relezoo.utils.structure import Context
 from tests.utils.common import MAX_TEST_EPISODES
 from tests.utils.netpol import build_net
+
+
+@pytest.fixture(autouse=True)
+def run_around_tests():
+    di[Context] = Context({
+        "epochs": MAX_TEST_EPISODES,
+        "render": False,
+        "gpu": False,
+        "eval_every": 1,
+        "mean_reward_window": 100
+    })
+    di[Logging] = mock.MagicMock(Logging)
+    yield
+    di.clear_cache()
 
 
 def build_policy(env: Environment, policy_class, learning_rate: float = 1e-2):
@@ -23,7 +39,7 @@ def build_policy(env: Environment, policy_class, learning_rate: float = 1e-2):
 @pytest.mark.parametrize(
     ("algo_class", "policy_class"),
     [
-        (CrossEntropyDiscrete, CrossEntropyDiscretePolicy),
+        (CrossEntropyMethod, CrossEntropyDiscretePolicy),
         (ReinforceDiscrete, ReinforceDiscretePolicy)
     ]
 )
@@ -31,28 +47,17 @@ class TestDiscreteAlgorithmsIntegration:
 
     def test_smoke_train(self, algo_class, policy_class):
         env = GymWrapper("CartPole-v0")
-        mock_logger = mock.MagicMock(Logging)
+        mock_logger = di[Logging]
         policy = build_policy(env, policy_class)
-        algo = algo_class(policy=policy, logger=mock_logger)
-        ctx = Context({
-            "epochs": MAX_TEST_EPISODES,
-            "render": False,
-            "gpu": False
-        })
-        algo.train(env, ctx)
-        assert mock_logger.log_scalar.call_count == MAX_TEST_EPISODES * 3  # n epochs * 3 metrics
+        algo = algo_class(policy=policy)
+        algo.train(env, env)
+        assert mock_logger.log_scalar.call_count == MAX_TEST_EPISODES * 6  # n epochs * 3 metrics (train + eval)
 
     def test_smoke_play(self, algo_class, policy_class):
         env = GymWrapper("CartPole-v0")
-        mock_logger = mock.MagicMock(Logging)
         policy = build_policy(env, policy_class)
-        algo = algo_class(policy=policy, logger=mock_logger)
-        ctx = Context({
-            "epochs": MAX_TEST_EPISODES,
-            "render": False,
-            "gpu": False
-        })
-        rewards, lengths = algo.play(env, ctx)
+        algo = algo_class(policy=policy)
+        _, rewards, lengths = algo.play(env)
         assert isinstance(rewards, float)
         assert isinstance(lengths, float)
         assert rewards > 0.0
@@ -66,13 +71,8 @@ class TestDiscreteAlgorithmsIntegration:
     ])
     def test_train_environments(self, env_name: str, algo_class, policy_class):
         env = GymWrapper(env_name)
-        mock_logger = mock.MagicMock(Logging)
+        mock_logger = di[Logging]
         policy = build_policy(env, policy_class)
-        algo = algo_class(policy=policy, logger=mock_logger)
-        ctx = Context({
-            "epochs": MAX_TEST_EPISODES,
-            "render": False,
-            "gpu": False
-        })
-        algo.train(env, ctx)
-        assert mock_logger.log_scalar.call_count == MAX_TEST_EPISODES * 3  # n epochs * 3 metrics
+        algo = algo_class(policy=policy)
+        algo.train(env, env)
+        assert mock_logger.log_scalar.call_count == MAX_TEST_EPISODES * 6  # n epochs * 3 metrics

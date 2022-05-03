@@ -1,6 +1,5 @@
-_target_: relezoo.algorithms.xentropy.discrete.CrossEntropyDiscrete
+_target_: relezoo.algorithms.xentropy.CrossEntropyMethod
 defaults:
   - policy: xentropy-simple-discrete
 batch_size: 32
 elite_percentile: 70.0
-mean_return_window: 10

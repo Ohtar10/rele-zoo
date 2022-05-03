@@ -13,7 +13,8 @@ context:
   experiment_name: Relezoo
   mode: train
   render: False
-  eval_every: 10
+  eval_every: 1
+  mean_reward_window: 100
   checkpoints: checkpoints/
   epochs: 50
   gpu: True # use gpu if available

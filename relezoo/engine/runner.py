@@ -1,4 +1,5 @@
 import os
+from kink import di, inject
 from pathlib import Path
 from typing import Any
 
@@ -6,6 +7,7 @@ from hydra.utils import instantiate
 from omegaconf import DictConfig
 
 from relezoo.environments.base import Environment
+from relezoo.logging.base import Logging
 from relezoo.utils.structure import Context
 
 
@@ -24,7 +26,6 @@ class Runner:
         self.env_train = None
         self.env_test = None
         self.algorithm = None
-        self.logger = None
 
     def init(self, cfg: DictConfig) -> Any:
         """init.
@@ -35,7 +36,10 @@ class Runner:
         self.cfg = cfg
         self.env_train: Environment = instantiate(cfg.env_train)
         self.env_test: Environment = instantiate(cfg.env_test)
-        self.logger = instantiate(cfg.logger)
+
+        di['config'] = cfg
+        di[Logging] = instantiate(cfg.logger)
+        di[Context] = Context(self.cfg.context)
 
         if self.cfg.network.infer_in_shape:
             # TODO this is not scalable. Expects specifics from the config
@@ -47,23 +51,24 @@ class Runner:
             out_shape = self.env_train.get_action_space()[1]
             self.cfg.algorithm.policy.network.out_shape = out_shape
 
-        self.algorithm = instantiate(self.cfg.algorithm, logger=self.logger)
+        self.algorithm = instantiate(self.cfg.algorithm)
 
-    def run(self) -> Any:
+    @inject
+    def run(self, ctx: Context) -> Any:
         """run.
         Runs the experiment as per
         configuration mode.
         """
-        ctx = Context(self.cfg.context)
         result = None
         if "train" == ctx.mode:
             os.makedirs(Path(ctx.checkpoints), exist_ok=True)
-            result = self.algorithm.train(self.env_train, ctx, self.env_test)
+            result = self.algorithm.train(self.env_train, self.env_test)
             self.algorithm.save(os.path.join(self.workdir, ctx.checkpoints))
         elif "play" == ctx.mode:
             self.algorithm.load(ctx.checkpoints, ctx)
-            result = self.algorithm.play(self.env_test, ctx)
+            result = self.algorithm.play(self.env_test)
 
+        di.clear_cache()
         return result
 
 

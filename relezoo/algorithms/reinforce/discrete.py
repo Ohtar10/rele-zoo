@@ -4,6 +4,7 @@ from typing import Optional
 import numpy as np
 import torch
 import torch.optim as optim
+from kink import inject
 from tqdm import tqdm
 
 from relezoo.algorithms.base import Policy, Algorithm
@@ -107,6 +108,7 @@ class ReinforceDiscretePolicy(Policy):
         self.net = self.net.to(device)
 
 
+@inject
 class ReinforceDiscrete(Algorithm):
     """Reinforce
     Container class for all the necessary logic
@@ -115,42 +117,12 @@ class ReinforceDiscrete(Algorithm):
 
     def __init__(
             self,
+            logger: Logging,
+            context: Context,
             policy: Optional[ReinforceDiscretePolicy] = None,
-            batch_size: int = 5000,
-            logger: Optional[Logging] = None):
-        self.batch_size = batch_size
-        self.policy = policy
-        self.logger = logger
+            batch_size: int = 5000):
+        super(ReinforceDiscrete, self).__init__(context, logger, batch_size, policy)
         self.train_steps = 0
-
-    def train(self, env: Environment, context: Context, eval_env: Optional[Environment] = None):
-        """train
-        The main training loop for the algorithm.
-
-        This is inspired by OpenAI Spinning up implementation.
-        """
-        assert self.policy is not None, "The policy is not defined."
-        self.policy.set_mode(NetworkMode.TRAIN)
-        epochs = context.epochs
-        render = context.render
-        device = "cuda" if context.gpu and torch.cuda.is_available() else "cpu"
-        self.policy.to(device)
-        with tqdm(total=epochs) as progress:
-            for i in range(1, epochs + 1):
-                is_last_epoch = i == epochs
-                batch_loss, batch_returns, batch_lens = self._train_epoch(env, self.batch_size)
-                if eval_env is not None and (i % context.eval_every == 0 or is_last_epoch):  # evaluate every 10 epochs
-                    self._evaluate(eval_env, render)
-                progress.set_postfix({
-                    "loss": f"{batch_loss:.2f}",
-                    "score": f"{np.mean(batch_returns):.2f}",
-                    "episode_length": f"{np.mean(batch_lens):.2f}"
-                })
-                progress.update()
-                if self.logger is not None:
-                    self.logger.flush()
-        if self.logger is not None:
-            self.logger.close()
 
     def _train_epoch(self,
                      env: Environment,
@@ -204,26 +176,6 @@ class ReinforceDiscrete(Algorithm):
 
         return batch_loss, batch_returns, batch_lens
 
-    def _evaluate(self, env: Environment, render: bool = False):
-        render_frames = []
-        episode_return = 0
-        obs = env.reset()
-        while True:
-            if render:
-                render_frames.append(env.render(mode='rgb_array'))
-
-            action = self.policy.act(torch.from_numpy(obs)).cpu().numpy()
-            obs, reward, done, _ = env.step(action)
-            episode_return += reward
-            if done:
-                break
-
-        self.logger.log_scalar("evaluation/return", episode_return, step=self.train_steps)
-        self.logger.log_scalar('evaluation/episode_length', len(render_frames), step=self.train_steps)
-
-        if render:
-            self.logger.log_video_from_frames("live-play", render_frames, fps=16, step=self.train_steps)
-
     def _log(self, batch_loss, batch_returns, batch_lens):
         if self.logger is not None:
             self.logger.log_scalar('training/loss', batch_loss, self.train_steps)
@@ -238,41 +190,3 @@ class ReinforceDiscrete(Algorithm):
         device = "cuda" if context and context.gpu and torch.cuda.is_available() else "cpu"
         net = torch.load(load_path, map_location=torch.device(device))
         self.policy = ReinforceDiscretePolicy(net)
-
-    def play(self, env: Environment, context: Context) -> (float, int):
-        """play.
-        Play the environments using the current
-        policy, without learning, for as many
-        episodes as requested.
-        """
-        assert self.policy is not None, "The policy is not defined."
-        self.policy.set_mode(NetworkMode.EVAL)
-        epochs = context.epochs
-        render = context.render
-        device = "cuda" if context.gpu and torch.cuda.is_available() else "cpu"
-        self.policy.to(device)
-        with tqdm(total=epochs) as progress:
-            ep_rewards = []
-            ep_lengths = []
-            for i in range(1, epochs + 1):
-                obs = env.reset()
-                ep_length = 1
-                ep_reward = 0
-                while True:
-                    if render:
-                        env.render()
-
-                    action = self.policy.act(torch.from_numpy(obs)).cpu().numpy()
-                    obs, reward, done, _ = env.step(action)
-                    ep_reward += reward
-                    if done:
-                        break
-                    ep_length += 1
-                ep_lengths.append(ep_length)
-                ep_rewards.append(ep_reward)
-                progress.set_postfix({
-                    "Avg. reward": f"{np.mean(ep_rewards):.2f}",
-                    "Avg. ep length": f"{np.mean(ep_length):.2f}"
-                })
-                progress.update()
-        return np.mean(ep_rewards), np.mean(ep_length)

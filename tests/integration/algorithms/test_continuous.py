@@ -1,11 +1,25 @@
 import mock
 import pytest
+from kink import di
 from relezoo.algorithms.reinforce.continuous import ReinforceContinuousPolicy, ReinforceContinuous
 from relezoo.environments import GymWrapper
 from relezoo.logging.base import Logging
 from relezoo.utils.structure import Context
 from tests.utils.common import MAX_TEST_EPISODES
 from tests.utils.netpol import build_net
+
+
+@pytest.fixture(autouse=True)
+def run_around_tests():
+    di[Context] = Context({
+        "epochs": MAX_TEST_EPISODES,
+        "render": False,
+        "gpu": False,
+        "mean_reward_window": 100
+    })
+    di[Logging] = mock.MagicMock(Logging)
+    yield
+    di.clear_cache()
 
 
 def build_policy(env: GymWrapper, policy_class, learning_rate: float = 1e-2):
@@ -28,27 +42,16 @@ class TestContinuousAlgorithmsIntegration:
     def test_smoke_train_reinforce(self, algo_class, policy_class):
         env = GymWrapper("Pendulum-v1")
         policy = build_policy(env, policy_class)
-        mock_logger = mock.MagicMock(Logging)
-        algo = algo_class(policy=policy, logger=mock_logger)
-        ctx = Context({
-            "epochs": MAX_TEST_EPISODES,
-            "render": False,
-            "gpu": False
-        })
-        algo.train(env, ctx)
+        mock_logger = di[Logging]
+        algo = algo_class(policy=policy)
+        algo.train(env)
         assert mock_logger.log_scalar.call_count == MAX_TEST_EPISODES * 3
 
     def test_smoke_play_reinforce(self, algo_class, policy_class):
         env = GymWrapper("Pendulum-v1")
-        mock_logger = mock.MagicMock(Logging)
         policy = build_policy(env, policy_class)
-        algo = algo_class(policy=policy, logger=mock_logger)
-        ctx = Context({
-            "epochs": MAX_TEST_EPISODES,
-            "render": False,
-            "gpu": False
-        })
-        rewards, lengths = algo.play(env, ctx)
+        algo = algo_class(policy=policy)
+        rewards, lengths = algo.play(env)
         assert isinstance(rewards, float)
         assert isinstance(lengths, float)
         assert rewards != 0.0

@@ -30,8 +30,8 @@ class TestContext:
                 context = Context(cfg.context)
                 assert context.mode == "train"
                 assert context['mode'] == "train"
-                assert context.eval_every == 10
-                assert context['eval_every'] == 10
+                assert context.eval_every == 1
+                assert context['eval_every'] == 1
                 assert context.epochs == 50
                 assert context['epochs'] == 50
 

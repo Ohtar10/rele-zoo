@@ -3,10 +3,25 @@ import numpy as np
 import pytest
 import torch
 import torch.nn as nn
+from kink import di
 
 from relezoo.algorithms.reinforce.continuous import ReinforceContinuous, ReinforceContinuousPolicy
+from relezoo.logging.base import Logging
 from relezoo.utils.structure import Context
 from tests.utils.common import MAX_TEST_EPISODES
+
+
+@pytest.fixture(autouse=True)
+def run_around_tests():
+    di[Context] = Context({
+        "epochs": MAX_TEST_EPISODES,
+        "render": False,
+        "gpu": False,
+        "mean_reward_window": 100
+    })
+    di[Logging] = mock.MagicMock(Logging)
+    yield
+    di.clear_cache()
 
 
 @pytest.mark.unit
@@ -18,26 +33,20 @@ from tests.utils.common import MAX_TEST_EPISODES
 )
 class TestContinuousAlgorithms:
 
-    @mock.patch("tensorboardX.SummaryWriter")
     @mock.patch("gym.Env")
-    def test_reinforce_train(self, mock_env, mock_logger, algo_class, policy_class):
+    def test_reinforce_train(self, mock_env, algo_class, policy_class):
         mock_policy = mock.MagicMock(policy_class)
-        algo = algo_class(policy=mock_policy, logger=mock_logger)
+        mock_logger = di[Logging]
+        algo = algo_class(policy=mock_policy)
         algo._train_epoch = mock.MagicMock(return_value=(0.1, np.array([1, 2]), np.array([1, 2])))
-        ctx = Context({
-            "epochs": MAX_TEST_EPISODES,
-            "render": False,
-            "gpu": False
-        })
-        algo.train(mock_env, ctx)
+        algo.train(mock_env)
         assert algo._train_epoch.call_count == MAX_TEST_EPISODES
         assert mock_logger.flush.call_count == MAX_TEST_EPISODES
         mock_logger.close.assert_called_once()
 
-    @mock.patch("tensorboardX.SummaryWriter")
-    def test_save_agent(self, mock_logger, algo_class,  policy_class):
+    def test_save_agent(self, algo_class,  policy_class):
         mock_policy = mock.MagicMock(policy_class)
-        algo = algo_class(mock_policy, mock_logger)
+        algo = algo_class(policy=mock_policy)
         save_path = "save-path"
         algo.save(save_path)
         mock_policy.save.called_once_with(save_path)
@@ -71,7 +80,7 @@ class TestContinuousAlgorithms:
             dummy_parameters = [nn.Parameter(torch.tensor([1., 2.]))]
             mock_net.parameters.return_value = dummy_parameters
             policy = policy_class(mock_net)
-            algo = algo_class(policy)
+            algo = algo_class(policy=policy)
             policy.act = mock.MagicMock(side_effect=torch.Tensor([0, 1, 1, 0]))
             steps = [
                 (np.array([1, 1, 1]), 1, False, None),
@@ -83,13 +92,10 @@ class TestContinuousAlgorithms:
 
             mock_from_numpy.side_effect = [s[0] for s in steps]
 
-            ctx = Context({
-                "epochs": 1,
-                "render": False,
-                "gpu": False
-            })
+            ctx = di[Context]
+            ctx.epochs = 1
 
-            avg_reward, avg_ep_length = algo.play(mock_env, ctx)
+            avg_reward, avg_ep_length = algo.play(mock_env)
             mock_env.reset.assert_called_once()
             assert policy.act.call_count == 4
             assert mock_env.step.call_count == 4
@@ -100,7 +106,7 @@ class TestContinuousAlgorithms:
     def test_play_no_policy_should_fail(self, mock_env, algo_class, policy_class):
         algo = algo_class()
         with pytest.raises(AssertionError) as e:
-            algo.play(mock_env, 1)
+            algo.play(mock_env)
             assert e.value == "The policy is not defined."
 
     @mock.patch("gym.Env")

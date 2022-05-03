@@ -11,3 +11,4 @@ tqdm==4.62.3
 ray==1.11.0
 prometheus_client==0.13.1
 wandb==0.12.15
+kink==0.6.3

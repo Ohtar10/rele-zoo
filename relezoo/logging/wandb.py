@@ -1,4 +1,5 @@
 import os.path
+from kink import di, inject
 from typing import Union, Optional, Any
 import tempfile
 from moviepy.editor import ImageSequenceClip
@@ -8,12 +9,14 @@ import wandb
 from relezoo.logging.base import Logging
 
 
+@inject
 class WandbLogging(Logging):
 
-    def __init__(self, watch_grads: bool = False, **kwargs):
-        wandb.init(**kwargs)
+    def __init__(self, config, watch_grads: bool = False, **kwargs):
+        wandb.init(config=config, **kwargs)
         self.watch_grads = watch_grads
         self.watching_grads = False
+        self.init()
 
     def init(self):
         pass
