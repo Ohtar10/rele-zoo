@@ -17,6 +17,7 @@ context:
   mean_reward_window: 100
   checkpoints: checkpoints/
   epochs: 50
+  seed:
   gpu: True # use gpu if available
 
 network:

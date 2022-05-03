@@ -39,7 +39,7 @@ def build_policy(env: GymWrapper, policy_class, learning_rate: float = 1e-2):
 )
 class TestContinuousAlgorithmsIntegration:
 
-    def test_smoke_train_reinforce(self, algo_class, policy_class):
+    def test_smoke_train(self, algo_class, policy_class):
         env = GymWrapper("Pendulum-v1")
         policy = build_policy(env, policy_class)
         mock_logger = di[Logging]
@@ -47,7 +47,7 @@ class TestContinuousAlgorithmsIntegration:
         algo.train(env)
         assert mock_logger.log_scalar.call_count == MAX_TEST_EPISODES * 3
 
-    def test_smoke_play_reinforce(self, algo_class, policy_class):
+    def test_smoke_play(self, algo_class, policy_class):
         env = GymWrapper("Pendulum-v1")
         policy = build_policy(env, policy_class)
         algo = algo_class(policy=policy)

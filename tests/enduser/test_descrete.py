@@ -33,10 +33,24 @@ class TestDiscreteAlgorithmsCli:
             except Exception as e:
                 pytest.fail(f"It should not have failed. {e}")
 
-    def test_train_with_parallel_env(self, algorithm) -> None:
-        if algorithm == 'reinforce-discrete':
-            pytest.skip('reinforce for parallel envs not yet implemented')
+    def test_train_with_seed(self, algorithm) -> None:
+        with initialize_config_module(config_module="relezoo.conf"):
+            cfg = compose(config_name="config",
+                          overrides=[
+                              f"algorithm={algorithm}",
+                              "context.seed=123"
+                          ])
+            try:
+                # test for only three episodes instead of the default
+                cfg.context.epochs = MAX_TEST_EPISODES
+                hcli.hrelezoo(cfg)
+                checkpoints = os.path.join(os.getcwd(), cfg.context.checkpoints)
+                expected_cp = os.path.join(checkpoints, f"{CrossEntropyDiscretePolicy.__name__}.cpt")
+                assert os.path.exists(expected_cp)
+            except Exception as e:
+                pytest.fail(f"It should not have failed. {e}")
 
+    def test_train_with_parallel_env(self, algorithm) -> None:
         with initialize_config_module(config_module="relezoo.conf"):
             cfg = compose(config_name="config",
                           overrides=[

@@ -77,3 +77,4 @@ class TestDiscreteAlgorithmsIntegration:
         algo = algo_class(policy=policy)
         algo.train(env, env)
         assert mock_logger.log_scalar.call_count == MAX_TEST_EPISODES * 6  # n epochs * 3 metrics
+

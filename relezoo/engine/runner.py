@@ -1,8 +1,10 @@
 import os
 from kink import di, inject
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 import logging
+import numpy as np
+import torch
 
 from hydra.utils import instantiate
 from omegaconf import DictConfig
@@ -29,6 +31,12 @@ class Runner:
         self.algorithm = None
         self.log = logging.getLogger(__name__)
 
+    @staticmethod
+    def set_seed(seed: Optional[int]):
+        if seed is not None:
+            np.random.seed(seed)
+            torch.manual_seed(seed)
+
     def init(self, cfg: DictConfig) -> Any:
         """init.
 
@@ -36,6 +44,7 @@ class Runner:
         per hydra configuration.
         """
         self.cfg = cfg
+        self.set_seed(self.cfg.context.seed)
         self.env_train: Environment = instantiate(cfg.env_train)
         self.env_test: Environment = instantiate(cfg.env_test)
 

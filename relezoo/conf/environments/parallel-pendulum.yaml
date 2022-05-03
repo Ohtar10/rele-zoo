@@ -1,0 +1,4 @@
+_target_: relezoo.environments.ParallelGym
+name: "Pendulum-v1"
+g: 9.81
+num_envs: 5

@@ -12,8 +12,8 @@ class RayGym(object):
     def __init__(self):
         self.env = None
 
-    def init(self, name: str):
-        self.env = gym.make(name)
+    def init(self, name: str, **kwargs):
+        self.env = gym.make(name, **kwargs)
         self.env.reset()
 
     def step(self, action) -> Any:
@@ -50,7 +50,7 @@ class ParallelGym(Environment, ABC):
         for _ in range(self.num_envs):
             self.__envs.append(RayGym.remote())
         for i in range(self.num_envs):
-            self.__envs[i].init.remote(self.name)
+            self.__envs[i].init.remote(self.name, **self.params)
 
     def build_environment(self) -> gym.Env:
         pass

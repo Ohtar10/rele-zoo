@@ -1,5 +1,5 @@
 from collections import namedtuple, deque
-from typing import Optional, Union
+from typing import Union
 
 import numpy as np
 import torch
@@ -47,7 +47,7 @@ class CrossEntropyMethod(Algorithm):
                 for agent, ob in zip(batch_obs, obs)
             ]
             actions = self.policy.act(torch.tensor(obs)).cpu().numpy()  # (#agents, action_space)
-            actions = actions.reshape(-1, 1)  # discrete action of dim 1
+            actions = actions.reshape(-1, 1)  # TODO discrete action of dim 1, and continuous?
 
             obs, rewards, dones, _ = env.step(actions)
             rewards = rewards.reshape(-1, 1)  # reward of dim 1
