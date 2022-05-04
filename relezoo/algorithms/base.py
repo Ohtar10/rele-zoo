@@ -107,6 +107,7 @@ class Algorithm(ABC):
     def _evaluate(self, env: Environment, render: bool = False):
         render_frames = []
         episode_return = 0
+        episode_length = 0
         obs = env.reset()
         while True:
             if render:
@@ -115,12 +116,13 @@ class Algorithm(ABC):
             action = self.policy.act(torch.from_numpy(obs)).cpu().numpy()
             obs, reward, done, _ = env.step(action)
             episode_return += reward
+            episode_length += 1
             if done:
                 break
 
         self.avg_return_pool.append(episode_return)
         self.logger.log_scalar("evaluation/return", episode_return, step=self.train_steps)
-        self.logger.log_scalar('evaluation/episode_length', len(render_frames), step=self.train_steps)
+        self.logger.log_scalar('evaluation/episode_length', episode_length, step=self.train_steps)
         self.logger.log_scalar(f'evaluation/mean_reward_over_{self.mean_reward_window}_episodes',
                                np.mean(self.avg_return_pool), step=self.train_steps)
 

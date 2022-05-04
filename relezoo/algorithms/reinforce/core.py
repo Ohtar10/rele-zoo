@@ -121,7 +121,7 @@ class Reinforce(Algorithm):
             batch_lens.append(len(episode.steps))
 
         train_obs = torch.tensor(np.array(train_obs))
-        train_act = torch.tensor(np.array(train_act))
+        train_act = torch.tensor(np.array(train_act)).squeeze()
         train_weights = torch.tensor(np.array(train_weights))
         return train_obs, train_act, train_weights, batch_returns, batch_lens
 
