@@ -109,7 +109,7 @@ class CrossEntropyMethod(Algorithm):
             elite_lens.append(len(steps))
 
         train_obs = torch.tensor(np.array(train_obs))
-        train_act = torch.tensor(np.array(train_act), dtype=torch.long)
+        train_act = torch.tensor(np.array(train_act), dtype=torch.float)
 
         return train_obs, train_act, elite_rewards, elite_lens
 

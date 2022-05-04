@@ -19,7 +19,7 @@ class Policy(ABC):
     Represents a policy of an on-policy RL algorithm.
     """
 
-    def __init__(self, context: Context):
+    def __init__(self, context: Context = None):
         self.context = context
 
     @abstractmethod

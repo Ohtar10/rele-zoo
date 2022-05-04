@@ -2,6 +2,7 @@ import mock
 import pytest
 from kink import di
 from relezoo.algorithms.reinforce import Reinforce, ReinforceContinuousPolicy
+from relezoo.algorithms.xentropy import CrossEntropyMethod, CrossEntropyContinuousPolicy
 from relezoo.environments import GymWrapper
 from relezoo.logging.base import Logging
 from relezoo.utils.structure import Context
@@ -22,34 +23,35 @@ def run_around_tests():
     di.clear_cache()
 
 
-def build_policy(env: GymWrapper, policy_class, learning_rate: float = 1e-2):
+def build_policy(env: GymWrapper, policy_class, learning_rate: float = 1e-2, net_type: str = "simple"):
     in_shape = env.get_observation_space()[1]
     out_shape = env.get_action_space()[1]
     return policy_class(
-        build_net(in_shape, out_shape),
+        build_net(in_shape, out_shape, net_type),
         learning_rate)
 
 
 @pytest.mark.integration
 @pytest.mark.parametrize(
-    ("algo_class", "policy_class"),
+    ("algo_class", "policy_class", "net_type"),
     [
-        (Reinforce, ReinforceContinuousPolicy)
+        (Reinforce, ReinforceContinuousPolicy, "simple"),
+        (CrossEntropyMethod, CrossEntropyContinuousPolicy, "musigma")
     ]
 )
 class TestContinuousAlgorithmsIntegration:
 
-    def test_smoke_train(self, algo_class, policy_class):
+    def test_smoke_train(self, algo_class, policy_class, net_type):
         env = GymWrapper("Pendulum-v1")
-        policy = build_policy(env, policy_class)
+        policy = build_policy(env, policy_class, net_type=net_type)
         mock_logger = di[Logging]
         algo = algo_class(policy=policy)
         algo.train(env)
         assert mock_logger.log_scalar.call_count == MAX_TEST_EPISODES * 3
 
-    def test_smoke_play(self, algo_class, policy_class):
+    def test_smoke_play(self, algo_class, policy_class, net_type):
         env = GymWrapper("Pendulum-v1")
-        policy = build_policy(env, policy_class)
+        policy = build_policy(env, policy_class, net_type=net_type)
         algo = algo_class(policy=policy)
         _, rewards, lengths = algo.play(env)
         assert isinstance(rewards, float)

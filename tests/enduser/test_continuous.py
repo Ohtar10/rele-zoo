@@ -12,7 +12,8 @@ from tests.utils.common import MAX_TEST_EPISODES, BASELINES_PATH
 @pytest.mark.parametrize(
     "algorithm",
     [
-        "reinforce-continuous"
+        "reinforce-continuous",
+        "xentropy-continuous"
     ]
 )
 class TestReinforceContinuousCli:

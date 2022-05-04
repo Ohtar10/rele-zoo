@@ -6,6 +6,7 @@ import torch.nn as nn
 from kink import di
 
 from relezoo.algorithms.reinforce import Reinforce, ReinforceContinuousPolicy
+from relezoo.algorithms.xentropy import CrossEntropyMethod, CrossEntropyContinuousPolicy
 from relezoo.logging.base import Logging
 from relezoo.utils.structure import Context
 from tests.utils.common import MAX_TEST_EPISODES
@@ -28,7 +29,8 @@ def run_around_tests():
 @pytest.mark.parametrize(
     ("algo_class", "policy_class"),
     [
-        (Reinforce, ReinforceContinuousPolicy)
+        (Reinforce, ReinforceContinuousPolicy),
+        (CrossEntropyMethod, CrossEntropyContinuousPolicy)
     ]
 )
 class TestContinuousAlgorithms:
