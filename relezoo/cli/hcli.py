@@ -26,4 +26,3 @@ def hrelezoo(cfg: Optional[DictConfig] = None) -> Any:
 
 if __name__ == '__main__':
     hrelezoo()
-

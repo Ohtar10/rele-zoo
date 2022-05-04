@@ -74,7 +74,7 @@ class Runner:
         if "train" == ctx.mode:
             os.makedirs(Path(ctx.checkpoints), exist_ok=True)
             try:
-                result = self.algorithm.train(self.env_train, self.env_test)
+                result, _ = self.algorithm.train(self.env_train, self.env_test)
             except KeyboardInterrupt:
                 self.log.info("Training interrupted. Saving current progress...")
             finally:
@@ -82,7 +82,7 @@ class Runner:
         elif "play" == ctx.mode:
             self.algorithm.load(ctx.checkpoints)
             try:
-                result = self.algorithm.play(self.env_test)
+                result, _, _ = self.algorithm.play(self.env_test)
             except KeyboardInterrupt:
                 self.log.info("Play interrupted...")
 

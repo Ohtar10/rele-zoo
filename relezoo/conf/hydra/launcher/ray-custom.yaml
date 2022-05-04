@@ -1,6 +1,7 @@
 ray:
     init:
         num_cpus: 4
+        num_gpus: 1
         #4GB in bytes
         _memory: 4294967296
         dashboard_port: 8265
