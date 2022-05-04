@@ -27,7 +27,7 @@ class Reinforce(Algorithm):
             logger: Logging,
             context: Context,
             policy: Optional[ReinforceDiscretePolicy] = None,
-            batch_size: int = 5000):
+            batch_size: int = 500):
         super(Reinforce, self).__init__(context, logger, batch_size, policy)
         self.train_steps = 0
 
