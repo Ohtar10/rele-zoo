@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 from hydra.utils import instantiate
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 from relezoo.environments.base import Environment
 from relezoo.logging.base import Logging
@@ -48,7 +48,7 @@ class Runner:
         self.env_train: Environment = instantiate(cfg.env_train)
         self.env_test: Environment = instantiate(cfg.env_test)
 
-        di['config'] = cfg
+        di['config'] = OmegaConf.to_container(cfg)
         di[Logging] = instantiate(cfg.logger)
         di[Context] = Context(self.cfg.context)
 

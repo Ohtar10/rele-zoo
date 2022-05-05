@@ -1,11 +1,13 @@
 import os.path
-from kink import di, inject
-from typing import Union, Optional, Any
 import tempfile
-from moviepy.editor import ImageSequenceClip
-import torch.nn as nn
+from typing import Union, Optional, Any
+
 import numpy as np
+import torch.nn as nn
 import wandb
+from kink import inject
+from moviepy.editor import ImageSequenceClip
+
 from relezoo.logging.base import Logging
 
 
@@ -13,7 +15,7 @@ from relezoo.logging.base import Logging
 class WandbLogging(Logging):
 
     def __init__(self, config, watch_grads: bool = False, **kwargs):
-        self.config = dict(config)
+        self.config = config
         self.params = kwargs
         self.watch_grads = watch_grads
         self.watching_grads = False
