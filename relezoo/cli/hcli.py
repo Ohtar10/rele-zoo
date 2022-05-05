@@ -20,7 +20,6 @@ def hrelezoo(cfg: Optional[DictConfig] = None) -> Any:
     result = runner.run()
     log.debug(OmegaConf.to_yaml(cfg))
     ray.shutdown()
-    log.info(result)
     return result
 
 

@@ -97,8 +97,8 @@ class Algorithm(ABC):
             self.logger.close()
 
         mean_reward = np.mean(self.avg_return_pool)
-        return f"\nFinished.\nMean reward over {self.mean_reward_window} epochs: " \
-               f"{mean_reward:.2f}\n", mean_reward
+        return f"Training finished -- Mean reward over {self.mean_reward_window} epochs: " \
+               f"{mean_reward:.2f}", mean_reward
 
     @abstractmethod
     def _train_epoch(self, env: Environment, batch_size: int):
@@ -168,8 +168,8 @@ class Algorithm(ABC):
 
         mean_reward = np.mean(ep_rewards)
         mean_length = np.mean(ep_length)
-        return f"\nFinished.\nMean reward {mean_reward:.2f}, mean episode length: {mean_length:.2f}\n", mean_reward, \
-               mean_length
+        return f"Playing finished -- Mean reward {mean_reward:.2f}, mean episode length: {mean_length:.2f}", \
+               mean_reward, mean_length
 
     def save(self, save_path: str) -> None:
         self.policy.save(save_path)
