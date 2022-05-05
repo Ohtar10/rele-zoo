@@ -13,13 +13,14 @@ from relezoo.logging.base import Logging
 class WandbLogging(Logging):
 
     def __init__(self, config, watch_grads: bool = False, **kwargs):
-        wandb.init(config=config, **kwargs)
+        self.config = dict(config)
+        self.params = kwargs
         self.watch_grads = watch_grads
         self.watching_grads = False
         self.init()
 
     def init(self):
-        pass
+        wandb.init(config=self.config, **self.params)
 
     def flush(self):
         pass
