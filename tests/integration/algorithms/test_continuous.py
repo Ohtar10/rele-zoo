@@ -35,7 +35,7 @@ def build_policy(env: GymWrapper, policy_class, learning_rate: float = 1e-2, net
 @pytest.mark.parametrize(
     ("algo_class", "policy_class", "net_type"),
     [
-        (Reinforce, ReinforceContinuousPolicy, "simple"),
+        (Reinforce, ReinforceContinuousPolicy, "musigma"),
         (CrossEntropyMethod, CrossEntropyContinuousPolicy, "musigma")
     ]
 )

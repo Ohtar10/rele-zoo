@@ -1,6 +1,6 @@
 _target_: relezoo.algorithms.reinforce.ReinforceContinuousPolicy
 defaults:
-  - network: simple-fc
+  - network: simple-fc-mu-sigma
 learning_rate: 1e-5
 noise:
   name: ou-noise

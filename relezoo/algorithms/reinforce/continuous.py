@@ -1,7 +1,6 @@
 import os
 from typing import Optional, Dict, Any
 
-import numpy as np
 import torch
 import torch.optim as optim
 
@@ -35,10 +34,6 @@ class ReinforceContinuousPolicy(Policy):
         self.net = network
         self.optimizer = optim.Adam(self.net.parameters(), learning_rate)
         self.out_shape = network.get_output_shape()
-        log_std = -0.5 * np.ones(self.out_shape, dtype=np.float32)
-        # By subscribing the log_std as a parameter, it will receive
-        # Gradient updates during the backward pass
-        self.log_std = torch.nn.Parameter(torch.as_tensor(log_std))
         self.noise = None
         if noise is not None:
             self._build_noise(noise)
@@ -58,9 +53,8 @@ class ReinforceContinuousPolicy(Policy):
             self.net.eval()
 
     def _get_policy(self, obs: torch.Tensor):
-        mu = self.net(obs)
-        std = torch.exp(self.log_std)
-        return torch.distributions.Normal(mu, std)
+        mu, sigma = self.net(obs)
+        return torch.distributions.Normal(mu, sigma)
 
     def act(self, obs: torch.Tensor) -> (torch.Tensor, int):
         """act.
@@ -119,4 +113,3 @@ class ReinforceContinuousPolicy(Policy):
     def to(self, device: str):
         self.device = device
         self.net = self.net.to(device)
-        self.log_std = self.log_std.to(device)

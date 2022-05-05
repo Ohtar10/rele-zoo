@@ -28,4 +28,8 @@ ax_config:
       type: choice
       value_type: int
       is_ordered: True
-      values: [2500, 5000, 7000]
+      values: [16, 32, 64, 128, 256]
+    algorithm.elite_percentile:
+      type: range
+      value_type: float
+      bounds: [70, 95]
