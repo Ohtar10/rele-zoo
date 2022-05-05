@@ -1,0 +1,3 @@
+_target_: relezoo.environments.ParallelGym
+name: "LunarLander-v2"
+num_envs: 5

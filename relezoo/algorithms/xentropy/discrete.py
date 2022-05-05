@@ -1,6 +1,6 @@
 import os
 from typing import Optional
-
+import numpy as np
 import torch
 import torch.nn as nn
 from torch import optim
@@ -14,9 +14,15 @@ class CrossEntropyDiscretePolicy(Policy):
 
     def __init__(self,
                  network: Network,
-                 learning_rate: float = 1e-2):
+                 learning_rate: float = 1e-2,
+                 eps_start: float = 0.0,
+                 eps_min: float = 0.0,
+                 eps_decay: float = 0.99):
         super(CrossEntropyDiscretePolicy, self).__init__()
         self.net = network
+        self.eps = eps_start
+        self.eps_min = eps_min
+        self.eps_decay = eps_decay
         self.objective = nn.CrossEntropyLoss()
         self.optimizer = optim.Adam(self.net.parameters(), learning_rate)
         self.device = 'cpu'
@@ -28,6 +34,13 @@ class CrossEntropyDiscretePolicy(Policy):
             self.net.eval()
 
     def act(self, obs: torch.Tensor) -> (torch.Tensor, int):
+        if 0.0 < self.eps < np.random.random():
+            self.eps = max(self.eps_min, self.eps * self.eps_decay)
+            out_features = self.net.get_output_shape()
+            batch_size = obs.shape[0]
+            actions = np.random.randint(0, out_features, batch_size)
+            return torch.tensor(actions)
+
         obs = obs.to(self.device)
         logits = self.net(obs)
         return torch.distributions.Categorical(logits=logits).sample()

@@ -24,11 +24,10 @@ ax_config:
       type: range
       value_type: float
       bounds: [1e-4, 1e-2]
-    algorithm.batch_size:
-      type: choice
-      value_type: int
-      is_ordered: True
-      values: [16, 32, 64, 128, 256]
+    algorithm.policy.eps_start:
+      type: range
+      value_type: float
+      bounds: [0.2, 0.7]
     algorithm.elite_percentile:
       type: range
       value_type: float
