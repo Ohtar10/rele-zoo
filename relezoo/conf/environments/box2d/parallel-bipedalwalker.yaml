@@ -1,0 +1,4 @@
+_target_: relezoo.environments.ParallelGym
+name: "BipedalWalker-v3"
+num_envs: 5
+hardcore: False

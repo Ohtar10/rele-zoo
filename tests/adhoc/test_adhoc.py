@@ -16,23 +16,24 @@ class TestAdhoc:
     """
 
     @pytest.mark.parametrize(
-        ("environment", "algorithm"),
+        ("env_train", "env_test", "algorithm"),
         [
-            ("cartpole", "xentropy-discrete")
+            ("box2d/parallel-lunar-lander", "box2d/lunar-lander", "reinforce-discrete")
         ]
     )
-    def test_train(self, environment, algorithm):
+    def test_train(self, env_train, env_test, algorithm, tmpdir):
         with initialize_config_module(config_module="relezoo.conf"):
+            out_folder = tmpdir.mkdir('output')
             cfg = compose(config_name="config", overrides=[
-                f"environments@env_train=parallel-{environment}",
-                f"environments@env_test={environment}",
-                f"algorithm={algorithm}"
+                f"environments@env_train={env_train}",
+                f"environments@env_test={env_test}",
+                f"algorithm={algorithm}",
+                "logger=tensorboard"
             ])
             try:
-                cfg.context.epochs = 20
-                cfg.context.render = False
-                cfg.context.eval_every = 5
-                cfg.algorithm.batch_size = 16
+                cfg.context.epochs = 5
+                cfg.context.render = True
+                cfg.algorithm.batch_size = 5000
                 result = hcli.hrelezoo(cfg)
                 print(result)
             except Exception as e:

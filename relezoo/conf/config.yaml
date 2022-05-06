@@ -1,7 +1,7 @@
 defaults:
   - _self_
-  - environments@env_train: cartpole
-  - environments@env_test: cartpole
+  - environments@env_train: classic_control/cartpole
+  - environments@env_test: classic_control/cartpole
   - algorithm: reinforce-discrete
   - logger: tensorboard
   - override hydra/help: relezoo-help

@@ -22,8 +22,8 @@ class TestReinforceContinuousCli:
         with initialize_config_module(config_module="relezoo.conf"):
             cfg = compose(config_name="config",
                           overrides=[
-                              "environments@env_train=pendulum",
-                              "environments@env_test=pendulum",
+                              "environments@env_train=classic_control/pendulum",
+                              "environments@env_test=classic_control/pendulum",
                               f"algorithm={algorithm}"
                           ])
             try:
@@ -40,8 +40,8 @@ class TestReinforceContinuousCli:
         with initialize_config_module(config_module="relezoo.conf"):
             cfg = compose(config_name="config",
                           overrides=[
-                              "environments@env_train=pendulum",
-                              "environments@env_test=pendulum",
+                              "environments@env_train=classic_control/pendulum",
+                              "environments@env_test=classic_control/pendulum",
                               f"algorithm={algorithm}",
                               "context.seed=123"
                           ])
@@ -60,8 +60,8 @@ class TestReinforceContinuousCli:
             cfg = compose(config_name="config",
                           overrides=[
                               f"algorithm={algorithm}",
-                              "environments@env_train=parallel-pendulum",
-                              "environments@env_test=pendulum"
+                              "environments@env_train=classic_control/parallel-pendulum",
+                              "environments@env_test=classic_control/pendulum"
                           ])
             try:
                 # test for only three episodes instead of the default
@@ -78,8 +78,8 @@ class TestReinforceContinuousCli:
         with initialize_config_module(config_module="relezoo.conf"):
             cfg = compose(config_name="config",
                           overrides=[
-                              "environments@env_train=pendulum",
-                              "environments@env_test=pendulum",
+                              "environments@env_train=classic_control/pendulum",
+                              "environments@env_test=classic_control/pendulum",
                               f"algorithm={algorithm}"
                           ])
             try:
@@ -95,8 +95,8 @@ class TestReinforceContinuousCli:
         with initialize_config_module(config_module="relezoo.conf"):
             cfg = compose(config_name="config",
                           overrides=[
-                              "environments@env_train=pendulum",
-                              "environments@env_test=pendulum",
+                              "environments@env_train=classic_control/pendulum",
+                              "environments@env_test=classic_control/pendulum",
                               f"algorithm={algorithm}"
                           ])
             try:

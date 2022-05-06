@@ -55,7 +55,7 @@ class TestDiscreteAlgorithmsCli:
             cfg = compose(config_name="config",
                           overrides=[
                               f"algorithm={algorithm}",
-                              "environments@env_train=parallel-cartpole"
+                              "environments@env_train=classic_control/parallel-cartpole"
                           ])
             try:
                 # test for only three episodes instead of the default
@@ -70,8 +70,8 @@ class TestDiscreteAlgorithmsCli:
     @pytest.mark.parametrize(
         "environment",
         [
-            "cartpole",
-            "acrobot"
+            "classic_control/cartpole",
+            "classic_control/acrobot"
         ]
     )
     def test_play(self, environment, algorithm) -> None:
@@ -87,7 +87,9 @@ class TestDiscreteAlgorithmsCli:
                 # test for only three episodes instead of the default
                 cfg.context.epochs = MAX_TEST_EPISODES
                 cfg.context.mode = 'play'
-                cfg.context.checkpoints = os.path.join(BASELINES_PATH, "xentropy", environment, f"{environment}.cpt")
+                cfg.context.checkpoints = os.path.join(
+                    BASELINES_PATH, "xentropy", environment, f"{environment.split('/')[-1]}.cpt"
+                )
                 hcli.hrelezoo(cfg)
             except Exception as e:
                 pytest.fail(f"It should not have failed. {e}")

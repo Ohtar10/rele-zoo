@@ -1,0 +1,3 @@
+_target_: relezoo.environments.ParallelGym
+name: "MountainCar-v0"
+num_envs: 5
