@@ -3,9 +3,15 @@ import os
 import pytest
 from hydra import compose, initialize_config_module
 
-from relezoo.algorithms.reinforce.continuous import ReinforceContinuousPolicy
 from relezoo.cli import hcli
 from tests.utils.common import MAX_TEST_EPISODES, BASELINES_PATH
+
+
+@pytest.fixture(autouse=True)
+def run_around_tests(tmpdir):
+    tmp_folder = tmpdir.mkdir('output')
+    os.chdir(tmp_folder)
+    yield
 
 
 @pytest.mark.cli
@@ -31,8 +37,11 @@ class TestReinforceContinuousCli:
                 cfg.context.epochs = MAX_TEST_EPISODES
                 hcli.hrelezoo(cfg)
                 checkpoints = os.path.join(os.getcwd(), cfg.context.checkpoints)
-                expected_cp = os.path.join(checkpoints, f"{ReinforceContinuousPolicy.__name__}.cpt")
-                assert os.path.exists(expected_cp)
+                assert os.path.exists(checkpoints)
+                assert len(os.listdir(checkpoints)) > 0
+                logs = os.path.join(os.getcwd(), cfg.logger.log_dir)
+                assert os.path.exists(logs)
+                assert len(os.listdir(logs)) > 0
             except Exception as e:
                 pytest.fail(f"It should not have failed. {e}")
 
@@ -50,8 +59,11 @@ class TestReinforceContinuousCli:
                 cfg.context.epochs = MAX_TEST_EPISODES
                 hcli.hrelezoo(cfg)
                 checkpoints = os.path.join(os.getcwd(), cfg.context.checkpoints)
-                expected_cp = os.path.join(checkpoints, f"{ReinforceContinuousPolicy.__name__}.cpt")
-                assert os.path.exists(expected_cp)
+                assert os.path.exists(checkpoints)
+                assert len(os.listdir(checkpoints)) > 0
+                logs = os.path.join(os.getcwd(), cfg.logger.log_dir)
+                assert os.path.exists(logs)
+                assert len(os.listdir(logs)) > 0
             except Exception as e:
                 pytest.fail(f"It should not have failed. {e}")
 
@@ -68,8 +80,11 @@ class TestReinforceContinuousCli:
                 cfg.context.epochs = MAX_TEST_EPISODES
                 hcli.hrelezoo(cfg)
                 checkpoints = os.path.join(os.getcwd(), cfg.context.checkpoints)
-                expected_cp = os.path.join(checkpoints, f"{ReinforceContinuousPolicy.__name__}.cpt")
-                assert os.path.exists(expected_cp)
+                assert os.path.exists(checkpoints)
+                assert len(os.listdir(checkpoints)) > 0
+                logs = os.path.join(os.getcwd(), cfg.logger.log_dir)
+                assert os.path.exists(logs)
+                assert len(os.listdir(logs)) > 0
             except Exception as e:
                 pytest.fail(f"It should not have failed. {e}")
 
@@ -105,7 +120,10 @@ class TestReinforceContinuousCli:
                 cfg.context.eval_every = 1
                 hcli.hrelezoo(cfg)
                 checkpoints = os.path.join(os.getcwd(), cfg.context.checkpoints)
-                expected_cp = os.path.join(checkpoints, f"{ReinforceContinuousPolicy.__name__}.cpt")
-                assert os.path.exists(expected_cp)
+                assert os.path.exists(checkpoints)
+                assert len(os.listdir(checkpoints)) > 0
+                logs = os.path.join(os.getcwd(), cfg.logger.log_dir)
+                assert os.path.exists(logs)
+                assert len(os.listdir(logs)) > 0
             except Exception as e:
                 pytest.fail(f"It should not have failed. {e}")

@@ -3,9 +3,15 @@ import os
 import pytest
 from hydra import compose, initialize_config_module
 
-from relezoo.algorithms.xentropy.discrete import CrossEntropyDiscretePolicy
 from relezoo.cli import hcli
 from tests.utils.common import BASELINES_PATH, MAX_TEST_EPISODES
+
+
+@pytest.fixture(autouse=True)
+def run_around_tests(tmpdir):
+    tmp_folder = tmpdir.mkdir('output')
+    os.chdir(tmp_folder)
+    yield
 
 
 @pytest.mark.cli
@@ -28,8 +34,11 @@ class TestDiscreteAlgorithmsCli:
                 cfg.context.epochs = MAX_TEST_EPISODES
                 hcli.hrelezoo(cfg)
                 checkpoints = os.path.join(os.getcwd(), cfg.context.checkpoints)
-                expected_cp = os.path.join(checkpoints, f"{CrossEntropyDiscretePolicy.__name__}.cpt")
-                assert os.path.exists(expected_cp)
+                assert os.path.exists(checkpoints)
+                assert len(os.listdir(checkpoints)) > 0
+                logs = os.path.join(os.getcwd(), cfg.logger.log_dir)
+                assert os.path.exists(logs)
+                assert len(os.listdir(logs)) > 0
             except Exception as e:
                 pytest.fail(f"It should not have failed. {e}")
 
@@ -45,8 +54,11 @@ class TestDiscreteAlgorithmsCli:
                 cfg.context.epochs = MAX_TEST_EPISODES
                 hcli.hrelezoo(cfg)
                 checkpoints = os.path.join(os.getcwd(), cfg.context.checkpoints)
-                expected_cp = os.path.join(checkpoints, f"{CrossEntropyDiscretePolicy.__name__}.cpt")
-                assert os.path.exists(expected_cp)
+                assert os.path.exists(checkpoints)
+                assert len(os.listdir(checkpoints)) > 0
+                logs = os.path.join(os.getcwd(), cfg.logger.log_dir)
+                assert os.path.exists(logs)
+                assert len(os.listdir(logs)) > 0
             except Exception as e:
                 pytest.fail(f"It should not have failed. {e}")
 
@@ -62,8 +74,11 @@ class TestDiscreteAlgorithmsCli:
                 cfg.context.epochs = MAX_TEST_EPISODES
                 hcli.hrelezoo(cfg)
                 checkpoints = os.path.join(os.getcwd(), cfg.context.checkpoints)
-                expected_cp = os.path.join(checkpoints, f"{CrossEntropyDiscretePolicy.__name__}.cpt")
-                assert os.path.exists(expected_cp)
+                assert os.path.exists(checkpoints)
+                assert len(os.listdir(checkpoints)) > 0
+                logs = os.path.join(os.getcwd(), cfg.logger.log_dir)
+                assert os.path.exists(logs)
+                assert len(os.listdir(logs)) > 0
             except Exception as e:
                 pytest.fail(f"It should not have failed. {e}")
 
@@ -107,7 +122,10 @@ class TestDiscreteAlgorithmsCli:
                 cfg.context.eval_every = 1
                 hcli.hrelezoo(cfg)
                 checkpoints = os.path.join(os.getcwd(), cfg.context.checkpoints)
-                expected_cp = os.path.join(checkpoints, f"{CrossEntropyDiscretePolicy.__name__}.cpt")
-                assert os.path.exists(expected_cp)
+                assert os.path.exists(checkpoints)
+                assert len(os.listdir(checkpoints)) > 0
+                logs = os.path.join(os.getcwd(), cfg.logger.log_dir)
+                assert os.path.exists(logs)
+                assert len(os.listdir(logs)) > 0
             except Exception as e:
                 pytest.fail(f"It should not have failed. {e}")
