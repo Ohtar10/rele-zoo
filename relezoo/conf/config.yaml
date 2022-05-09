@@ -12,11 +12,14 @@ defaults:
 ##########################
 context:
   experiment_name: Relezoo
-  mode: train
-  render: False
+  mode: train  # train, resume, play
   eval_every: 1
+  render: False
+  render_every: 1
   mean_reward_window: 100
   checkpoints: checkpoints/
+  resume_from: # previous checkpoints path to resume from
+  start_at_step: 0 # set this to a specific step to start from if resuming from a previous run
   epochs: 50
   seed:
   gpu: True # use gpu if available

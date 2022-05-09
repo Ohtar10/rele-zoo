@@ -31,11 +31,12 @@ class Runner:
         self.algorithm = None
         self.log = logging.getLogger(__name__)
 
-    @staticmethod
-    def set_seed(seed: Optional[int]):
+    def set_seed(self, seed: Optional[int]):
         if seed is not None:
             np.random.seed(seed)
             torch.manual_seed(seed)
+            self.env_train.seed(seed)
+            self.env_test.seed(seed)
 
     def init(self, cfg: DictConfig) -> Any:
         """init.
@@ -44,9 +45,9 @@ class Runner:
         per hydra configuration.
         """
         self.cfg = cfg
-        self.set_seed(self.cfg.context.seed)
         self.env_train: Environment = instantiate(cfg.env_train)
         self.env_test: Environment = instantiate(cfg.env_test)
+        self.set_seed(self.cfg.context.seed)
 
         di['config'] = OmegaConf.to_container(cfg)
         di[Logging] = instantiate(cfg.logger)
@@ -71,14 +72,22 @@ class Runner:
         configuration mode.
         """
         result = None
-        if "train" == ctx.mode:
+        if "train" == ctx.mode or "resume" == ctx.mode:
+            self.log.info("Running Training Session with config:")
+            self.log.info(f"\n{OmegaConf.to_yaml(self.cfg)}")
+            self.log.info("Press CTRL + C to cancel the run")
+            self.log.info("A checkpoint will be saved automatically after a successful run or cancel.")
+            if "resume" == ctx.mode:
+                self.algorithm.load(ctx.resume_from)
+
             os.makedirs(Path(ctx.checkpoints), exist_ok=True)
             try:
                 msg, result = self.algorithm.train(self.env_train, self.env_test)
                 self.log.info(msg)
             except KeyboardInterrupt:
-                self.log.info("Training interrupted. Saving current progress...")
+                self.log.info("Training interrupted.")
             finally:
+                self.log.info("Saving current progress...")
                 self.algorithm.save(os.path.join(self.workdir, ctx.checkpoints))
         elif "play" == ctx.mode:
             self.algorithm.load(ctx.checkpoints)

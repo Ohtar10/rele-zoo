@@ -14,7 +14,7 @@ def run_around_tests(tmpdir):
     yield
 
 
-@pytest.mark.cli
+@pytest.mark.enduser
 @pytest.mark.parametrize(
     "algorithm",
     [
@@ -88,20 +88,30 @@ class TestReinforceContinuousCli:
             except Exception as e:
                 pytest.fail(f"It should not have failed. {e}")
 
-    @pytest.mark.skip(reason="Baseline not ready")
-    def test_play(self, algorithm) -> None:
+    @pytest.mark.parametrize(
+        "environment",
+        [
+            "classic_control/pendulum"
+        ]
+    )
+    def test_play(self, environment, algorithm) -> None:
+        checkpoint = os.path.join(
+            BASELINES_PATH, algorithm.split('-')[0], environment, f"{environment.split('/')[-1]}.cpt"
+        )
+        if not (os.path.exists(checkpoint)):
+            pytest.skip("Baseline not available")
         with initialize_config_module(config_module="relezoo.conf"):
             cfg = compose(config_name="config",
                           overrides=[
-                              "environments@env_train=classic_control/pendulum",
-                              "environments@env_test=classic_control/pendulum",
+                              f"environments@env_train={environment}",
+                              f"environments@env_test={environment}",
                               f"algorithm={algorithm}"
                           ])
             try:
                 # test for only three episodes instead of the default
                 cfg.context.epochs = MAX_TEST_EPISODES
                 cfg.context.mode = "play"
-                cfg.context.checkpoints = os.path.join(BASELINES_PATH, "reinforce", "pendulum", "pendulum.cpt")
+                cfg.context.checkpoints = checkpoint
                 hcli.hrelezoo(cfg)
             except Exception as e:
                 pytest.fail(f"It should not have failed. {e}")

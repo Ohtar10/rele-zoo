@@ -30,3 +30,7 @@ class Environment(abc.ABC):
     def render(self, mode: Optional[str] = None) -> Any:
         pass
 
+    @abstractmethod
+    def seed(self, seed: int):
+        pass
+

@@ -28,10 +28,10 @@ class CrossEntropyMethod(Algorithm):
         super(CrossEntropyMethod, self).__init__(context, logger, batch_size, policy)
         self.elite_percentile = elite_percentile
         self.mean_reward_window = context.mean_reward_window
-        self.train_steps = 0
+        self.train_steps = max(0, context.start_at_step - 1)
         self.avg_return_pool = deque(maxlen=self.mean_reward_window)
 
-    def _train_epoch(self,
+    def train_epoch(self,
                      env: Environment,
                      batch_size: int) -> (float, float):
         batch = []

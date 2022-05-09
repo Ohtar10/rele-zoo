@@ -9,17 +9,12 @@ from relezoo.algorithms.reinforce import Reinforce, ReinforceContinuousPolicy
 from relezoo.algorithms.xentropy import CrossEntropyMethod, CrossEntropyContinuousPolicy
 from relezoo.logging.base import Logging
 from relezoo.utils.structure import Context
-from tests.utils.common import MAX_TEST_EPISODES
+from tests.utils.common import MAX_TEST_EPISODES, get_test_context
 
 
 @pytest.fixture(autouse=True)
 def run_around_tests():
-    di[Context] = Context({
-        "epochs": MAX_TEST_EPISODES,
-        "render": False,
-        "gpu": False,
-        "mean_reward_window": 100
-    })
+    di[Context] = get_test_context()
     di[Logging] = mock.MagicMock(Logging)
     yield
     di.clear_cache()
@@ -36,13 +31,13 @@ def run_around_tests():
 class TestContinuousAlgorithms:
 
     @mock.patch("gym.Env")
-    def test_reinforce_train(self, mock_env, algo_class, policy_class):
+    def test_train(self, mock_env, algo_class, policy_class):
         mock_policy = mock.MagicMock(policy_class)
         mock_logger = di[Logging]
         algo = algo_class(policy=mock_policy)
-        algo._train_epoch = mock.MagicMock(return_value=(0.1, np.array([1, 2]), np.array([1, 2])))
+        algo.train_epoch = mock.MagicMock(return_value=(0.1, np.array([1, 2]), np.array([1, 2])))
         algo.train(mock_env)
-        assert algo._train_epoch.call_count == MAX_TEST_EPISODES
+        assert algo.train_epoch.call_count == MAX_TEST_EPISODES
         assert mock_logger.flush.call_count == MAX_TEST_EPISODES
         mock_logger.close.assert_called_once()
 

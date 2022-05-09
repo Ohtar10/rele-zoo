@@ -1,6 +1,10 @@
 import mock
 import pytest
 from kink import di
+from numpy.polynomial import polynomial
+import numpy as np
+import torch
+import random
 
 from relezoo.algorithms.reinforce.discrete import ReinforceDiscretePolicy
 from relezoo.algorithms.reinforce.core import Reinforce
@@ -10,19 +14,16 @@ from relezoo.environments import GymWrapper
 from relezoo.environments.base import Environment
 from relezoo.logging.base import Logging
 from relezoo.utils.structure import Context
-from tests.utils.common import MAX_TEST_EPISODES
+from tests.utils.common import MAX_TEST_EPISODES, get_test_context, TEST_SEED
 from tests.utils.netpol import build_net
 
 
 @pytest.fixture(autouse=True)
 def run_around_tests():
-    di[Context] = Context({
-        "epochs": MAX_TEST_EPISODES,
-        "render": False,
-        "gpu": False,
-        "eval_every": 1,
-        "mean_reward_window": 100
-    })
+    random.seed(TEST_SEED)
+    np.random.seed(TEST_SEED)
+    torch.manual_seed(TEST_SEED)
+    di[Context] = get_test_context()
     di[Logging] = mock.MagicMock(Logging)
     yield
     di.clear_cache()
@@ -77,4 +78,33 @@ class TestDiscreteAlgorithmsIntegration:
         algo = algo_class(policy=policy)
         algo.train(env, env)
         assert mock_logger.log_scalar.call_count == MAX_TEST_EPISODES * 6  # n epochs * 3 metrics
+
+    @pytest.mark.parametrize(("env_name", "delta", "overrides"), [
+        ("CartPole-v1", 2.0, {
+            ReinforceDiscretePolicy: {"batch_size": 5000},
+            CrossEntropyDiscretePolicy: {"batch_size": 64}
+        })
+    ])
+    def test_improvement(self, env_name: str, delta: float, overrides, algo_class, policy_class):
+        env = GymWrapper(env_name)
+        env.seed(TEST_SEED)
+        context = di[Context]
+        context.epochs = 10
+        policy = build_policy(env, policy_class)
+        algo = algo_class(policy=policy)
+
+        if policy_class in overrides:
+            policy_overrides = overrides[policy_class]
+            for k, v in policy_overrides.items():
+                policy.__setattr__(k, v)
+
+        algo.train(env, env)
+        returns = algo.avg_return_pool
+        x = list(range(len(returns)))
+        slope = polynomial.polyfit(x, returns, 1)[-1]
+        assert slope >= delta
+
+
+
+
 

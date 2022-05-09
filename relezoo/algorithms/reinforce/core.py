@@ -27,11 +27,13 @@ class Reinforce(Algorithm):
             logger: Logging,
             context: Context,
             policy: Optional[ReinforceDiscretePolicy] = None,
-            batch_size: int = 500):
+            batch_size: int = 500,
+            reward_2go: bool = False):
         super(Reinforce, self).__init__(context, logger, batch_size, policy)
-        self.train_steps = 0
+        self.train_steps = max(0, context.start_at_step - 1)
+        self.use_reward_2go = reward_2go
 
-    def _train_epoch(self, env: Environment, batch_size: int) -> (float, float, int):
+    def train_epoch(self, env: Environment, batch_size: int) -> (float, float, int):
         batch = []
         total_collected_steps = 0
         obs = env.reset()
@@ -70,6 +72,9 @@ class Reinforce(Algorithm):
                     episode_obs = batch_obs[idx]
                     episode_act = batch_actions[idx]
                     episode_return = np.sum(batch_rewards[idx])
+                    rewards_2go = []
+                    if self.use_reward_2go:
+                        rewards_2go = self._reward_2go(batch_rewards[idx])
 
                     # Despite this being called "weights" this is
                     # actually R(tau), i.e., the return of the whole
@@ -77,7 +82,11 @@ class Reinforce(Algorithm):
                     # episode steps as this is how the gradient
                     # is calculated. See the gradient formula.
                     steps = [
-                        Reinforce.EpisodeStep(episode_obs[i], episode_act[i], episode_return)
+                        Reinforce.EpisodeStep(
+                            episode_obs[i],
+                            episode_act[i],
+                            rewards_2go[i] if self.use_reward_2go else episode_return
+                        )
                         for i in range(len(episode_obs))
                     ]
                     total_collected_steps += len(steps)
@@ -131,5 +140,13 @@ class Reinforce(Algorithm):
             self.logger.log_scalar('training/return', np.mean(batch_returns), self.train_steps)
             self.logger.log_scalar('training/episode_length', np.mean(batch_lens), self.train_steps)
             self.logger.log_grads(self.policy.net, self.train_steps)
+
+    @staticmethod
+    def _reward_2go(rewards):
+        n = len(rewards)
+        rtgs = np.zeros_like(rewards)
+        for i in reversed(range(n)):
+            rtgs[i] = rewards[i] + (rtgs[i + 1] if i+1 < n else 0)
+        return rtgs
 
 

@@ -4,6 +4,7 @@ from hydra import initialize_config_module, compose
 from relezoo.utils.structure import Context
 
 
+@pytest.mark.unit
 class TestContext:
 
     def test_create_context_from_dict(self):

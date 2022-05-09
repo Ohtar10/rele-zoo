@@ -2,3 +2,4 @@ _target_: relezoo.algorithms.reinforce.Reinforce
 defaults:
   - policy: reinforce-simple-discrete
 batch_size: 500
+reward_2go: False

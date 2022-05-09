@@ -74,16 +74,17 @@ class Algorithm(ABC):
         """
         assert self.policy is not None, "The policy is not defined."
         self.policy.set_mode(NetworkMode.TRAIN)
-        epochs = self.context.epochs
+        start_at_step = self.context.start_at_step
+        epochs = start_at_step + self.context.epochs
         render = self.context.render
         device = "cuda" if self.context.gpu and torch.cuda.is_available() else "cpu"
         self.policy.to(device)
-        with tqdm(total=epochs) as progress:
-            for i in range(1, epochs + 1):
+        with tqdm(initial=start_at_step, total=epochs) as progress:
+            for i in range(start_at_step + 1, epochs + 1):
                 is_last_epoch = i == epochs
-                batch_loss, batch_returns, batch_lens = self._train_epoch(env, self.batch_size)
+                batch_loss, batch_returns, batch_lens = self.train_epoch(env, self.batch_size)
                 if eval_env is not None and (i % self.context.eval_every == 0 or is_last_epoch):
-                    self._evaluate(eval_env, render)
+                    self.evaluate(eval_env, True if render and i % self.context.render_every == 0 else False)
                 progress.set_postfix({
                     "loss": f"{batch_loss:.2f}",
                     "mean_batch_score": f"{np.mean(batch_returns):.2f}",
@@ -101,10 +102,10 @@ class Algorithm(ABC):
                f"{mean_reward:.2f}", mean_reward
 
     @abstractmethod
-    def _train_epoch(self, env: Environment, batch_size: int):
+    def train_epoch(self, env: Environment, batch_size: int):
         pass
 
-    def _evaluate(self, env: Environment, render: bool = False):
+    def evaluate(self, env: Environment, render: bool = False):
         render_frames = []
         episode_return = 0
         episode_length = 0

@@ -81,3 +81,8 @@ class ParallelGym(Environment, ABC):
 
     def render(self, mode: Optional[str] = None) -> Any:
         pass
+
+    def seed(self, seed: int):
+        pass
+
+

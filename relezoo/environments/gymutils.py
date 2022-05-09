@@ -65,4 +65,8 @@ class GymWrapper(Environment):
         else:
             return self.__env.render()
 
+    def seed(self, seed: int):
+        self.__env.seed(seed)
+
+
 

@@ -57,8 +57,8 @@ test-unit:
 test-integration:
 	($(CONDA_ACTIVATE) ${CONDA_ENV_NAME}; pytest -m integration --junitxml=report.xml -v -s tests; coverage xml)
 
-test-cli:
-	($(CONDA_ACTIVATE) ${CONDA_ENV_NAME}; pytest -m cli --junitxml=report.xml -v -s tests; coverage xml)
+test-enduser:
+	($(CONDA_ACTIVATE) ${CONDA_ENV_NAME}; pytest -m enduser --junitxml=report.xml -v -s tests; coverage xml)
 
 benchmark:
 	($(CONDA_ACTIVATE) ${CONDA_ENV_NAME}; pytest -v -s -m benchmark tests || true )

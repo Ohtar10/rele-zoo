@@ -1,23 +1,23 @@
 import mock
 import pytest
 from kink import di
+import numpy as np
+import torch
+from numpy.polynomial import polynomial
 from relezoo.algorithms.reinforce import Reinforce, ReinforceContinuousPolicy
 from relezoo.algorithms.xentropy import CrossEntropyMethod, CrossEntropyContinuousPolicy
 from relezoo.environments import GymWrapper
 from relezoo.logging.base import Logging
 from relezoo.utils.structure import Context
-from tests.utils.common import MAX_TEST_EPISODES
+from tests.utils.common import MAX_TEST_EPISODES, get_test_context, TEST_SEED
 from tests.utils.netpol import build_net
 
 
 @pytest.fixture(autouse=True)
 def run_around_tests():
-    di[Context] = Context({
-        "epochs": MAX_TEST_EPISODES,
-        "render": False,
-        "gpu": False,
-        "mean_reward_window": 100
-    })
+    np.random.seed(TEST_SEED)
+    torch.manual_seed(TEST_SEED)
+    di[Context] = get_test_context()
     di[Logging] = mock.MagicMock(Logging)
     yield
     di.clear_cache()
@@ -58,3 +58,17 @@ class TestContinuousAlgorithmsIntegration:
         assert isinstance(lengths, float)
         assert rewards != 0.0
         assert lengths > 0.0
+
+    @pytest.mark.parametrize(("env_name", "delta"), [
+        ("Pendulum-v1", 2.0)
+    ])
+    def test_improvement(self, env_name: str, delta: float, algo_class, policy_class, net_type):
+        pytest.skip("Pending good algorithm/environment implementation")
+        env = GymWrapper(env_name)
+        policy = build_policy(env, policy_class, net_type=net_type)
+        algo = algo_class(policy=policy)
+        algo.train(env, env)
+        returns = algo.avg_return_pool
+        x = list(range(len(returns)))
+        slope = polynomial.polyfit(x, returns, 1)[-1]
+        assert slope >= delta
