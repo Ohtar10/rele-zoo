@@ -1,17 +1,16 @@
-Welcome to Relezoo's documentation!
+Welcome to ReleZoo's documentation!
 ===================================
 
-**ReleZoo** (/lu'make/) is a Python library/SDK to run and develop Reinforcement Learning (RL)
+**ReleZoo** is a Python library/SDK to run and develop Reinforcement Learning (RL)
 algorithms.
 
 It is basically an opinionated abstraction of the several aspects RL experimentation might have
-to make easier to run and try out new experiments. I developed this as a way to help me
-learn about RL coming from a more traditional SWE background.
+(environments, parallel environments, logging, training loop, evaluation, e.t.c.)
+to make easier to run, visualize, and try out new experiments. I developed this as a way **to help me
+learn** about RL coming from a more traditional SWE background. Basically I intend this project
+to be my own version of Stable_baselines3_.
 
-It pulls data from the `Open Food Facts database <https://world.openfoodfacts.org/>`_
-and offers a *simple* and *intuitive* API.
-
-Check out the :doc:`usage` section for further information, including
+Check out the :doc:`usage/basic` section for further information, including
 how to :ref:`installation` the project.
 
 .. note::
@@ -22,6 +21,53 @@ Contents
 --------
 
 .. toctree::
+   :maxdepth: 2
+   :caption: Usage
 
-   usage
-   api
+   usage/basic
+   usage/train
+   usage/play
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Algorithms
+
+   modules/algorithms/base
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Environments
+
+   modules/environments/base
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Logging
+
+   modules/logger/base
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Networks
+
+   modules/networks/base
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Engine
+
+   modules/engine/base
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Utils
+
+   modules/utils/msc
+
+.. toctree::
+   :caption: Wandb
+
+   wandb
+
+
+.. _Stable_baselines3: https://github.com/DLR-RM/stable-baselines3
