@@ -138,7 +138,7 @@ class Reinforce(Algorithm):
         if self.logger is not None:
             self.logger.log_scalar('training/loss', batch_loss, self.train_steps)
             self.logger.log_scalar('training/return', np.mean(batch_returns), self.train_steps)
-            self.logger.log_scalar('training/episode_length', np.mean(batch_lens), self.train_steps)
+            self.logger.log_scalar('training/mean_episode_length', np.mean(batch_lens), self.train_steps)
             self.logger.log_grads(self.policy.net, self.train_steps)
 
     @staticmethod

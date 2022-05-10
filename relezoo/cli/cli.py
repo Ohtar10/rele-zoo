@@ -2,7 +2,7 @@ import logging
 
 import click
 
-from relezoo.__version__ import __version__
+from relezoo import __version__
 from relezoo.utils.console import start_python_console
 
 

@@ -12,7 +12,7 @@ packages = find_packages(exclude=('tests*', 'docs'))
 print(packages)
 
 version = {}
-with open(f'{packages[0]}/__version__.py') as f:
+with open(f'{packages[0]}/__init__.py') as f:
     exec(f.read(), version)
 
 with open('requirements.txt', encoding='UTF-8') as f:

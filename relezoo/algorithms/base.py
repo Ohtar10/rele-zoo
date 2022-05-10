@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Any
+from typing import Optional, Any, Tuple
 
 import numpy as np
 import torch
 from kink import inject
+from numpy import ndarray
 from tqdm import tqdm
 
 from relezoo.environments.base import Environment
@@ -14,9 +15,7 @@ from relezoo.utils.structure import Context
 
 @inject
 class Policy(ABC):
-    """Policy.
-
-    Represents a policy of an on-policy RL algorithm.
+    """Represents a policy of an on-policy RL algorithm.
     """
 
     def __init__(self, context: Context = None):
@@ -48,9 +47,19 @@ class Policy(ABC):
 
 
 class Algorithm(ABC):
-    """Algorithm.
+    """Represents an RL algorithm to solve a task.
 
-    Represents an RL algorithm to solve a task.
+    Attributes
+    ----------
+    context : Context
+        General context parameters. (Injectable)
+    logging : Logging
+        Logging mechanism. (Injectable)
+    batch_size : int
+        Number of rollouts to collect before train step
+    policy : Policy
+        The Policy to use and train the algorithm on
+
     """
 
     def __init__(self,
@@ -67,10 +76,17 @@ class Algorithm(ABC):
         self.train_steps = 0
 
     def train(self, env: Environment, eval_env: Optional[Environment] = None) -> Any:
-        """train
-        The main training loop for the algorithm.
+        """The main training loop for the algorithm.
 
-        This is inspired by OpenAI Spinning up implementation.
+        Controls the main training loop making as
+        many calls as needed to `train_epoch`.
+
+        Parameters
+        ----------
+        env : Environment
+            The training environment
+        eval_env : Environment
+            The evaluation environment
         """
         assert self.policy is not None, "The policy is not defined."
         self.policy.set_mode(NetworkMode.TRAIN)
@@ -106,6 +122,16 @@ class Algorithm(ABC):
         pass
 
     def evaluate(self, env: Environment, render: bool = False):
+        """Evaluate the current policy against the provided environment
+
+        Parameters
+        ----------
+        env : Environment
+            The environment the policy will be evaluated on.
+        render : bool
+            Determines if the evaluation rollout should be rendered
+
+        """
         render_frames = []
         episode_return = 0
         episode_length = 0
@@ -130,12 +156,23 @@ class Algorithm(ABC):
         if render:
             self.logger.log_video_from_frames("live-play", render_frames, fps=16, step=self.train_steps)
 
-    def play(self, env: Environment) -> (float, int):
-        """play.
-       Play the environments using the current
-       policy, without learning, for as many
-       episodes as requested.
-       """
+    def play(self, env: Environment) -> Tuple[str, ndarray, ndarray]:
+        """Use the current policy to play in the provided environment.
+
+        Parameters
+        ----------
+        env : Environment
+            The environment for rollouts
+
+        Returns
+        -------
+        msg : str
+            Result message with mean reward and mean length result.
+        mean_reward : float
+            Mean reward obtained among the total rollouts.
+        mean_length : float
+            Mean episode length among the total rollouts.
+        """
         assert self.policy is not None, "The policy is not defined."
         self.policy.set_mode(NetworkMode.EVAL)
         episodes = self.context.epochs

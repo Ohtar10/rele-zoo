@@ -6,7 +6,8 @@ import numpy as np
 
 
 class Logging(abc.ABC):
-
+    """Logging base class.
+    """
     @abstractmethod
     def init(self):
         pass
