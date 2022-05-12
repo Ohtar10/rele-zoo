@@ -105,6 +105,17 @@ or running the command like this:
     WANDB_START_METHOD="thread" relezoo-run --multirun context.sedd=123,456,789
 
 
+Running Hyperparameter tuning
+-----------------------------
+ReleZoo relies on `hydra <https://hydra.cc/>`_ for configuration composition, launcher and sweeping. As for sweeping,
+ReleZoo uses `Ax <https://ax.dev/>`_ for hyper parameter exploration. However, because each algorithm have different
+parameters, there must exist a configuration per algorithm. You can invoke them like this:
+
+.. code-block:: console
+
+   relezoo-run --multirun hydra/sweeper=ax-reinforce hydra.launcher.n_jobs=-1
+
+
 Running in Headless Mode
 ------------------------
 Rendering the evaluation rollouts is optional and is disabled by default. This is controlled with the property
@@ -119,3 +130,9 @@ rollouts, you can do the following:
 
   xvfb-run -s "-screen 0 1400x900x24" relezoo-run
 
+
+Checkpoints
+-----------
+
+Resuming work
+-------------
