@@ -24,7 +24,31 @@ class RayGym(object):
 
 
 class ParallelGym(Environment, ABC):
+    """Multi Agent Parallel Gym environments.
+
+    Using this class is equivalent to spawn multiple
+    gym environment instances of the same type each
+    with their own independent process. However, the class
+    will automatically distribute actions and aggregate
+    observations on each interaction. As consequence,
+    the observation and action spaces reflect the number
+    of parallel environments created.
+
+
+    """
     def __init__(self, name: str, num_envs: int, **kwargs):
+        """
+
+        Parameters
+        ----------
+        name : str
+            Name of the gym environment
+        num_envs : int
+            Number of parallel environments to manage
+        kwargs : dict
+            Gym environment options to be passed down
+
+        """
         self.name = name
         self.num_envs = num_envs
         self.params = kwargs
@@ -70,6 +94,21 @@ class ParallelGym(Environment, ABC):
             return np.expand_dims(obs, axis=0)
 
     def step(self, actions: Any) -> Any:
+        """Take a step in every environment using the provided actions.
+
+        Parameters
+        ----------
+        actions : Any
+            It should be of shape ``get_action_space``, i.e., the actions
+            to be sent to all the managed environments.
+
+        Returns
+        -------
+        (obs, rewards, dones, infos) : Any
+            Tuple with the observations, rewards, done signals and environment
+            info for all the managed environments.
+
+        """
         if isinstance(self.__local.action_space, gym.spaces.Discrete):
             actions = actions.squeeze().tolist()
         result = [ray.get(e.step.remote(a)) for a, e in zip(actions, self.__envs)]

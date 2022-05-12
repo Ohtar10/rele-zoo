@@ -13,6 +13,14 @@ from relezoo.logging.base import Logging
 
 @inject
 class WandbLogging(Logging):
+    """Wandb implementation for :py:class:`relezoo.logging.base.Logging`
+
+    This class implements the base Logging API using wandb as logging
+    mechanism. All special interactions, e.g., init, wandb types
+    transformation is handled here.
+
+
+    """
 
     def __init__(self, config, watch_grads: bool = False, **kwargs):
         self.config = config

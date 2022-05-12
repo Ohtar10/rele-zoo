@@ -30,6 +30,12 @@ Contents
 
 .. toctree::
    :maxdepth: 2
+   :caption: Architecture
+
+   architecture/components
+
+.. toctree::
+   :maxdepth: 2
    :caption: Algorithms
 
    modules/algorithms/base
@@ -39,12 +45,15 @@ Contents
    :caption: Environments
 
    modules/environments/base
+   modules/environments/gym
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Logging
 
    modules/logger/base
+   modules/logger/tensorboard
+   modules/logger/wandb
 
 .. toctree::
    :maxdepth: 2
@@ -65,7 +74,7 @@ Contents
    modules/utils/msc
 
 .. toctree::
-   :caption: Wandb
+   :caption: Wandb Reports
 
    wandb
 

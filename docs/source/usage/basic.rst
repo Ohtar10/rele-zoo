@@ -13,8 +13,8 @@ To use Relezoo, you must clone the repo and install it via pip:
     git clone https://github.com/Ohtar10/rele-zoo.git
     cd rele-zoo
     make install-env
-    conda activate rele-zoo
     make install
+    conda activate rele-zoo
 
 Verify Installation
 --------------------------

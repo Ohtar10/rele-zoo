@@ -7,13 +7,29 @@ from relezoo.environments.base import Environment
 
 
 class GymWrapper(Environment):
-    """GymWrapper.
+    """Open AI gym environment wrapper.
+
     This class wraps certain aspects
     of gym environments and acts as a
-    builder and meta-data store.
+    proxy between ReleZoo and gym Wrappers
+    using the :py:class:`relezoo.environments.base.Environment`
+    class as a contract. The environments
+    using this class are mono agent. For multi agent
+    versions check :py:class:`relezoo.environments.parallel.ParallelGym`
+
     """
 
     def __init__(self, name: str, **kwargs):
+        """
+
+        Parameters
+        ----------
+        name : str
+            Name of the gym environment
+        kwargs : dict
+            Gym environment options to be passed down
+
+        """
         self.name = name
         self.params = kwargs
         # This is a local copy of the env only for

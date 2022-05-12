@@ -12,7 +12,7 @@ install-env:
 	conda env create -f environment.yaml
 
 install:
-	pip install -e .
+	($(CONDA_ACTIVATE) ${CONDA_ENV_NAME}; pip install -e .)
 
 update-env:
 	conda env update -n rele-zoo -f environment.yaml
@@ -63,4 +63,4 @@ test-enduser:
 benchmark:
 	($(CONDA_ACTIVATE) ${CONDA_ENV_NAME}; pytest -v -s -m benchmark tests || true )
 
-all: clean install-env test
+all: clean install-env install test

@@ -12,8 +12,25 @@ from relezoo.logging.base import Logging
 
 
 class TensorboardLogging(Logging):
+    """Tensorboard implementation for :py:class:`relezoo.logging.base.Logging`
+
+    This class in essence re exposes the tensorboard methods from
+    :py:class:`torch.utils.tensorboard.SummaryWriter` obeying the
+    base class contract.
+
+    """
 
     def __init__(self, backend_class: Union[str, TXSummaryWriter, TorchSummaryWriter], log_dir: str):
+        """
+
+        Parameters
+        ----------
+        backend_class : Union[str, tensorboardX.SummaryWriter, torch.utils.tensorboard.SummaryWriter]
+            The final backend class to use as logging. when a string is provided, it is expected to be
+            the fully qualified class name to create the instance from.
+        log_dir : str
+            The logging directory.
+        """
         super(TensorboardLogging, self).__init__()
         if isinstance(backend_class, str):
             backend_module = ".".join(backend_class.split(".")[:-1])
