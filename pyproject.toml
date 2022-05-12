@@ -5,4 +5,19 @@ build-backend = "flit_core.buildapi"
 [project]
 name = "relezoo"
 authors = [{name = "Luis Ferro", email = "luisedof10@gmail.com"}]
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python= "~=3.8"
+classifiers = ["License :: OSI Approved :: Apache Software License"]
 dynamic = ["version", "description"]
+
+[project.urls]
+Home = "https://github.com/Ohtar10/rele-zoo/tree/master/"
+Documentation = "https://relezoo.readthedocs.io/en/latest/"
+Source = "https://github.com/Ohtar10/rele-zoo/tree/master/"
+
+[project.scripts]
+relezoo = "relezoo.cli:relezoo"
+relezoo-run = "relezoo.cli:hrelezoo"
+
+
