@@ -11,12 +11,16 @@ PROJECT_PATH=relezoo
 install-env:
 	conda env create -f environment.yaml
 
-install:
-	($(CONDA_ACTIVATE) ${CONDA_ENV_NAME}; pip install -e .)
-
 update-env:
 	conda env update -n rele-zoo -f environment.yaml
 
+install-dev:
+	touch setup.cfg
+	($(CONDA_ACTIVATE) ${CONDA_ENV_NAME}; pip install -e .)
+	rm setup.cfg
+
+install:
+	($(CONDA_ACTIVATE) ${CONDA_ENV_NAME}; pip install .)
 
 clean: clean-pyc clean-test clean-misc
 
@@ -63,4 +67,4 @@ test-enduser:
 benchmark:
 	($(CONDA_ACTIVATE) ${CONDA_ENV_NAME}; pytest -v -s -m benchmark tests || true )
 
-all: clean install-env install test
+all: clean install-env install
