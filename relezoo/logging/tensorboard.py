@@ -1,6 +1,6 @@
 import importlib
 import os.path
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, Dict, List
 
 import numpy as np
 import torch
@@ -111,6 +111,12 @@ class TensorboardLogging(Logging):
             step,
             fps=fps
         )
+
+    def log_table(self, name: str, col_params: Dict[str, List[Any]], data: List[Any]):
+        """No-op. Tensorboard does not support tables."""
+        pass
+
+
 
 
 

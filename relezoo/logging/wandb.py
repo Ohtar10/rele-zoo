@@ -1,6 +1,7 @@
 import os.path
 import tempfile
-from typing import Union, Optional, Any
+import re
+from typing import Union, Optional, Any, Dict, List
 
 import numpy as np
 import torch.nn as nn
@@ -9,6 +10,7 @@ from kink import inject
 from moviepy.editor import ImageSequenceClip
 
 from relezoo.logging.base import Logging
+from relezoo.utils.media import record_video
 
 
 @inject
@@ -27,13 +29,15 @@ class WandbLogging(Logging):
         self.params = kwargs
         self.watch_grads = watch_grads
         self.watching_grads = False
+        self.__tables = {}
         self.init()
 
     def init(self):
         wandb.init(config=self.config, **self.params)
 
     def flush(self):
-        pass
+        for k, v in self.__tables.items():
+            wandb.log({k: v})
 
     def close(self):
         wandb.finish()
@@ -71,9 +75,31 @@ class WandbLogging(Logging):
                               fps: int = 16,
                               step: Optional[int] = None):
         frames = frames if isinstance(frames, list) else [f for f in frames]
-        with tempfile.TemporaryDirectory() as td:
-            clip = ImageSequenceClip(frames, fps=fps)
-            file = os.path.join(td, 'logging-video.mp4')
-            clip.write_videofile(file)
-            self.log_video(name=name, data=file, step=step)
+        video_file = record_video(frames, fps)
+        self.log_video(name=name, data=video_file, step=step)
+
+    def log_table(self, name: str, col_params: Dict[str, List[Any]], data: List[Any]):
+        if name in self.__tables:
+            table = self.__tables[name]
+        else:
+            table = wandb.Table(columns=list(col_params.keys()))
+            self.__tables[name] = table
+
+        assert len(col_params) == len(data)
+        row = []
+        for op, value in zip(col_params.items(), data):
+            row.append(self.__transform(op, value))
+
+        table.add_data(*row)
+
+    @staticmethod
+    def __transform(operation: str, value: Any) -> Any:
+        if operation == 'noop':
+            return value
+        elif re.match(r'video\((.+)\)', operation) is not None:
+            fps = re.match(r'video\((.+)\)', operation).group(1)
+            video_file = record_video(value, fps)
+            return wandb.Video(video_file)
+
+
 

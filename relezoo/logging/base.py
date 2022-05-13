@@ -1,6 +1,6 @@
 import abc
 from abc import abstractmethod
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, List, Dict
 
 import numpy as np
 
@@ -148,6 +148,36 @@ class Logging(abc.ABC):
         step : int
             Step number in which this metric was obtained.
 
+
+        """
+        pass
+
+    @abstractmethod
+    def log_table(self, name: str, col_params: Dict[str, List[Any]], data: List[Any]):
+        """Logs the provided data as a table.
+
+        This method will inspect the provided data
+        and depending on its data type and the provided
+        column parameters, it will apply a transformation
+        before generating a record.
+
+        **Note:** This function will store a local
+        copy of the table name provided, and it will
+        add the provided data as a single record.
+        This function WILL NOT submit the table!!
+        It is expected any pending data to be submitted
+        when invoking the flush operation in the logging.
+
+
+        Parameters
+        ----------
+        name : str
+            Table name key.
+        data : List[Any]
+            Raw data to be added as row. This must be a single ROW in the table
+        col_params : Dict[str, List[Any]]
+            Represent the columns and a transformation function per column to
+            call to each data in the column.
 
         """
         pass
