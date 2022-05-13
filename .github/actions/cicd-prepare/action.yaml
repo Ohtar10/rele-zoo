@@ -31,7 +31,9 @@ runs:
         conda install ${{ inputs.conda-extra-deps }}
         sudo apt update -y
         sudo apt install -y ${{ inputs.os-extra-deps }}
+      shell: bash
 
     - name: Install ReleZoo
       run: |
         pip install ".[dev]"
+      shell: bash
