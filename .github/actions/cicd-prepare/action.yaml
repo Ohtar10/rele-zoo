@@ -16,7 +16,7 @@ inputs:
   os-extra-deps:
     description: 'Additional OS level dependencies'
     required: true
-    default: 'xvfb libglu1-mesa libglu1-mesa-dev'
+    default: 'gcc g++ xvfb libglu1-mesa libglu1-mesa-dev'
 runs:
   using: "composite"
   steps:
@@ -28,12 +28,7 @@ runs:
 
     - name: Setup additional dependencies
       run: |
-        conda install ${{ inputs.conda-extra-deps }}
         sudo apt update -y
         sudo apt install -y ${{ inputs.os-extra-deps }}
-      shell: bash
-
-    - name: Install ReleZoo
-      run: |
-        pip install ".[dev]"
+        conda install -y ${{ inputs.conda-extra-deps }}
       shell: bash

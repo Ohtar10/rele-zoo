@@ -15,7 +15,7 @@ jobs:
   test:
     # The type of runner that the job will run on
     name: Run full test suite
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     defaults:
       run:
         shell: bash -l {0}
@@ -32,13 +32,17 @@ jobs:
       - name: Prepare CI/CD run
         uses: ./.github/actions/cicd-prepare
 
+      - name: Install ReleZoo in Dev mode
+        run: |
+          pip install ".[dev]"
+
       - name: Run tests
         run: |
           xvfb-run -s "-screen 0 1400x900x24" pytest -v -s tests
 
   install-test:
     name: Install and test the tool works
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     defaults:
       run:
         shell: bash -l {0}
@@ -52,8 +56,12 @@ jobs:
       - name: Checkout LFS objects
         run: git lfs checkout
 
-      - name: Install the tool
+      - name: Prepare CI/CD run
         uses: ./.github/actions/cicd-prepare
+
+      - name: Install ReleZoo
+        run: |
+          pip install .
 
       - name: Run help commands
         run: |

@@ -17,7 +17,7 @@ parameters = [
 
 @pytest.fixture(autouse=True)
 def run_around_tests():
-    ray.init()
+    ray.init(ignore_reinit_error=True)
     yield
     ray.shutdown()
 
