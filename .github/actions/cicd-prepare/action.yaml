@@ -20,14 +20,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Checkout Repo
-      uses: actions/checkout@v2
-      with:
-        lfs: true
-
-    - name: Checkout LFS objects
-      run: git lfs checkout
-
     - name: Setup conda
       uses: conda-incubator/setup-miniconda@v2.1.1
       with:

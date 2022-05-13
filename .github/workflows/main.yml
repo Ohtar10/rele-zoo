@@ -21,6 +21,14 @@ jobs:
         shell: bash -l {0}
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+
+      - name: Checkout LFS objects
+        run: git lfs checkout
+
       - name: Prepare CI/CD run
         uses: ./.github/actions/cicd-prepare
 
@@ -36,6 +44,14 @@ jobs:
         shell: bash -l {0}
 
     steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+
+      - name: Checkout LFS objects
+        run: git lfs checkout
+
       - name: Install the tool
         uses: ./.github/actions/relezoo-ci-prepare
 
