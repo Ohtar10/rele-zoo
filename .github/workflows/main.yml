@@ -22,7 +22,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Prepare CI/CD run
-        uses: ./.github/actions/relezoo-ci-prepare
+        uses: ./.github/actions/cicd-prepare
 
       - name: Run tests
         run: |
