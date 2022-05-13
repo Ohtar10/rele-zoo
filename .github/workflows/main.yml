@@ -53,7 +53,7 @@ jobs:
         run: git lfs checkout
 
       - name: Install the tool
-        uses: ./.github/actions/relezoo-ci-prepare
+        uses: ./.github/actions/cicd-prepare
 
       - name: Run help commands
         run: |
