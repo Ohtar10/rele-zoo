@@ -16,7 +16,7 @@ update-env:
 
 install-dev:
 	touch setup.cfg
-	($(CONDA_ACTIVATE) ${CONDA_ENV_NAME}; pip install -e .)
+	($(CONDA_ACTIVATE) ${CONDA_ENV_NAME}; pip install -e ".[dev]")
 	rm setup.cfg
 
 install:

@@ -6,7 +6,7 @@ Basic
 Installation
 ------------
 
-To use Relezoo, you must clone the repo and install it via pip:
+To use Relezoo, you must clone the repo and install it via Make:
 
 .. code-block:: console
 
@@ -15,6 +15,17 @@ To use Relezoo, you must clone the repo and install it via pip:
     make install-env
     make install
     conda activate rele-zoo
+
+Or directly via pip:
+
+.. code-block:: console
+
+    git clone https://github.com/Ohtar10/rele-zoo.git
+    cd rele-zoo
+    conda env create -f environment.yaml
+    conda activate
+    pip install .
+
 
 Verify Installation
 --------------------------
@@ -49,3 +60,27 @@ so you can just run the program without any arguments:
    [2022-05-10 20:49:22,318][relezoo.engine.runner][INFO] - Saving current progress...
 
 If you see a similar output, everything is working fine.
+
+Development Mode Install
+------------------------
+
+For development and testing, i.e., developing new models or experiments and running the test suites
+you can install in dev mode:
+
+.. code-block:: console
+
+    git clone https://github.com/Ohtar10/rele-zoo.git
+    cd rele-zoo
+    make install-env
+    make install-dev
+    conda activate rele-zoo
+
+Or directly via pip:
+
+.. code-block:: console
+
+    git clone https://github.com/Ohtar10/rele-zoo.git
+    cd rele-zoo
+    conda env create -f environment.yaml
+    conda activate
+    pip install ".[dev]"

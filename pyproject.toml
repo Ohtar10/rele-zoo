@@ -11,6 +11,7 @@ requires-python= "~=3.8"
 classifiers = ["License :: OSI Approved :: Apache Software License"]
 dynamic = ["version", "description"]
 dependencies = [
+    "torch==1.10.2",
     "ipython==7.26.0",
     "click==8.0.1",
     "hydra-core==1.1.1",
@@ -35,7 +36,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = [
+dev = [
+    "flit",
     "pytest",
     "mock",
     "pytest-cov",

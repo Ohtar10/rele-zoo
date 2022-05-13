@@ -1,0 +1,45 @@
+name: 'Prepare ReleZoo CI/CD run'
+description: 'Performs all the basic operations: Checkout, Install envs & deps.'
+inputs:
+  conda-file:
+    description: 'Conda environment file'
+    required: true
+    default: './environment.yaml'
+  conda-env-name:
+    description: 'Conda environment name'
+    required: true
+    default: 'rele-zoo'
+  conda-extra-deps:
+    description: 'Additional conda dependencies not included in the default yaml file'
+    required: true
+    default: 'pyopengl ffmpeg'
+  os-extra-deps:
+    description: 'Additional OS level dependencies'
+    required: true
+    default: 'xvfb libglu1-mesa libglu1-mesa-dev'
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v2
+      with:
+        lfs: true
+
+    - name: Checkout LFS objects
+      run: git lfs checkout
+
+    - name: Setup conda
+      uses: conda-incubator/setup-miniconda@v2.1.1
+      with:
+        environment-file: ${{ inputs.conda-file }}
+        activate-environment: ${{ inputs.conda-env-name }}
+
+    - name: Setup additional dependencies
+      run: |
+        conda install ${{ inputs.conda-extra-deps }}
+        sudo apt update -y
+        sudo apt install -y ${{ inputs.os-extra-deps }}
+
+    - name: Install ReleZoo
+      run: |
+        pip install ".[dev]"
