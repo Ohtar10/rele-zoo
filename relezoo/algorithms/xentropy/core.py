@@ -1,30 +1,50 @@
-from collections import namedtuple, deque
-from typing import Union
+from collections import deque
+from typing import Optional
 
 import numpy as np
 import torch
 from kink import inject
 
-from relezoo.algorithms.base import Algorithm
-from relezoo.algorithms.xentropy.discrete import CrossEntropyDiscretePolicy
+from relezoo.algorithms.base import Algorithm, Policy
 from relezoo.environments.base import Environment
 from relezoo.logging.base import Logging
-from relezoo.utils.structure import Context
+from relezoo.utils.structure import Context, EpisodeStep, Episode
 
 
 @inject
 class CrossEntropyMethod(Algorithm):
-    Episode = namedtuple('Episode', field_names=['reward', 'steps'])
-    EpisodeStep = namedtuple('EpisodeStep', field_names=['observation', 'action'])
+    """Cross Entropy Method
+
+    Container class for all the necessary logic
+    to train and use a Cross Entropy Method
+    based Algorithm.
+
+    """
 
     def __init__(
             self,
             logger: Logging,
             context: Context,
-            policy: Union[CrossEntropyDiscretePolicy] = None,
+            policy: Optional[Policy] = None,
             batch_size: int = 16,
             elite_percentile: float = 70.
     ):
+        """
+
+        Parameters
+        ----------
+        logger : Logging
+            Logging mechanism to use.
+        context : Context
+            General experiment context parameters.
+        policy : Policy
+            The policy to train.
+        batch_size : int
+            The training batch size.
+        elite_percentile : float
+            The percentile threshold to select the elite rollouts.
+
+        """
         super(CrossEntropyMethod, self).__init__(context, logger, batch_size, policy)
         self.elite_percentile = elite_percentile
         self.mean_reward_window = context.mean_reward_window
@@ -32,8 +52,8 @@ class CrossEntropyMethod(Algorithm):
         self.avg_return_pool = deque(maxlen=self.mean_reward_window)
 
     def train_epoch(self,
-                     env: Environment,
-                     batch_size: int) -> (float, float):
+                    env: Environment,
+                    batch_size: int) -> (float, float):
         batch = []
         obs = env.reset()  # (#agents, obs_space)
         batch_obs = [False for _ in range(len(obs))]
@@ -71,8 +91,8 @@ class CrossEntropyMethod(Algorithm):
                     done_obs = batch_obs[idx]
                     done_act = batch_actions[idx]
                     done_return = np.sum(batch_returns[idx])
-                    steps = [CrossEntropyMethod.EpisodeStep(done_obs[i], done_act[i]) for i in range(len(done_obs))]
-                    batch.append(CrossEntropyMethod.Episode(done_return, steps))
+                    steps = [EpisodeStep(done_obs[i], done_act[i]) for i in range(len(done_obs))]
+                    batch.append(Episode(done_return, steps))
 
                     # Reset the finished agent
                     obs[dones_idx, :] = env.reset(idx)
@@ -100,13 +120,13 @@ class CrossEntropyMethod(Algorithm):
         train_act = []
         elite_rewards = []
         elite_lens = []
-        for reward, steps in batch:
-            if reward < reward_bound:
+        for episode in batch:
+            if episode.reward < reward_bound:
                 continue
-            train_obs.extend([step.observation for step in steps])
-            train_act.extend([step.action for step in steps])
-            elite_rewards.append(reward)
-            elite_lens.append(len(steps))
+            train_obs.extend([step.observation for step in episode.steps])
+            train_act.extend([step.action for step in episode.steps])
+            elite_rewards.append(episode.reward)
+            elite_lens.append(len(episode.steps))
 
         train_obs = torch.tensor(np.array(train_obs))
         train_act = torch.tensor(np.array(train_act), dtype=torch.float)
@@ -114,8 +134,6 @@ class CrossEntropyMethod(Algorithm):
         return train_obs, train_act, elite_rewards, elite_lens
 
     def _log(self, batch_loss, batch_returns, batch_lens):
+        super(CrossEntropyMethod, self)._log(batch_loss, batch_returns, batch_lens)
         if self.logger is not None:
-            self.logger.log_scalar('training/loss', batch_loss, self.train_steps)
-            self.logger.log_scalar('training/return', np.mean(batch_returns), self.train_steps)
-            self.logger.log_scalar('training/mean_episode_length', np.mean(batch_lens), self.train_steps)
             self.logger.log_grads(self.policy.net, self.train_steps)

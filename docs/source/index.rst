@@ -27,18 +27,22 @@ Contents
    usage/basic
    usage/train
    usage/play
+   usage/develop
 
 .. toctree::
    :maxdepth: 2
    :caption: Architecture
 
    architecture/components
+   architecture/engine
 
 .. toctree::
    :maxdepth: 2
    :caption: Algorithms
 
    modules/algorithms/base
+   modules/algorithms/xentropy
+   modules/algorithms/reinforce
 
 .. toctree::
    :maxdepth: 2
@@ -60,12 +64,6 @@ Contents
    :caption: Networks
 
    modules/networks/base
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Engine
-
-   modules/engine/base
 
 .. toctree::
    :maxdepth: 2

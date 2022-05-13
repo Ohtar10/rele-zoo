@@ -1,4 +1,6 @@
-from typing import Union, Any
+from dataclasses import dataclass
+from typing import Union, Any, List, Optional
+import numpy as np
 
 from omegaconf import DictConfig
 
@@ -26,5 +28,19 @@ class Context:
     def __getitem__(self, key) -> Any:
         return self._config[key]
 
+
+@dataclass
+class EpisodeStep:
+    """Class representing a single episode step."""
+    observation: np.ndarray
+    action: Union[np.ndarray, int, float]
+    weight: Optional[Union[np.ndarray, int, float]] = None
+
+
+@dataclass
+class Episode:
+    """Class representing a complete episode."""
+    reward: Union[np.ndarray, int, float]
+    steps: List[EpisodeStep]
 
 

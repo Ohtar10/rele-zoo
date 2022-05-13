@@ -40,6 +40,7 @@ Similarly, we can run the same environment but using a different algorithm:
 
    relezoo-run algorithm=xentropy-discrete
 
+
 Using Parallel Environments
 ---------------------------
 ReleZoo has the posibility to run multiple instances of the same environment. For this you can provide the parallel
@@ -133,6 +134,26 @@ rollouts, you can do the following:
 
 Checkpoints
 -----------
+By default, ReleZoo will generate checkpoints under the ``./checkpoints`` directory in the output folder.
+Checkpoints are generated for completed runs or if at any point during the run you press ``CTRL + C``
+to cancel the run. You can find the checkpoints for example under ``./output/ReleZoo/RUN_DATE/checkpoints/``.
+
+You can modify the location where checkpoints are saved with the ``context.checkpoints`` parameter.
+
 
 Resuming work
 -------------
+You can resume training work from a given checkpoint. You just need to run the command like this:
+
+.. code-block:: console
+
+   relezoo-run context.mode=resume \
+   context.resume_from=/path/to/checkpoints/ \
+   context.start_at_step=100
+
+Notice the change of ``context.mode=resume``, this signals the tool to resume work from a certain
+pre-trained model. Furthermore, you need to provide the path from where to read the checkpoints.
+This is different from the ``context.checkpoints`` parameter since the later is meant to store
+the current checkpoints. Finally, the optional parameter ``context.start_at_step`` is just a way
+to signal the tool that you are resuming from a particular iteration number. This is useful for when
+you manually cancel a run at a certain iteration and want to resume again.

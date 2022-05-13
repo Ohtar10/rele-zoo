@@ -16,33 +16,122 @@ from relezoo.utils.structure import Context
 @inject
 class Policy(ABC):
     """Represents a policy of an on-policy RL algorithm.
+
+    The Policy class has two major responsibilities:
+    # Take actions given observations.
+    # Learn from and update the current policy given
+    some batch information (observations, actions, and weights)
+
+    The policy then can be used detached from the training
+    algorithm which is usually not necessary when using
+    the policy live.
+
+    Attributes
+    ----------
+
+    context: Context
+        The experiment context with general hyper-parameters.
+
     """
 
     def __init__(self, context: Context = None):
+        """
+
+        Parameters
+        ----------
+        context: Context
+            The experiment context with general hyper-parameters.
+        """
         self.context = context
 
     @abstractmethod
     def act(self, obs: torch.Tensor) -> (torch.Tensor, int):
+        """Take action given the received observations.
+
+        It should be expected to receive the observations
+        in the shape (#agents, observation shape) such that
+        this policy can take actions from multiple agent
+        observations. Similarly, it will return a tensor
+        of shape (#agents, action shape).
+
+        Parameters
+        ----------
+        obs : torch.Tensor
+            Observations Tensor. Expected shape (#agents, observation shape)
+
+        Returns
+        -------
+        actions: torch.Tensor
+            Actions Tensor. Expected shape (#agents, action shape)
+
+        """
         pass
 
     @abstractmethod
     def learn(self, batch_obs: torch.Tensor, batch_actions: torch.Tensor, batch_weights: Optional[torch.Tensor] = None):
+        """Learn and update the current policy from the given data.
+
+        This method execute the custom algorithm learning
+        routine from the given observations.
+
+        Parameters
+        ----------
+        batch_obs: torch.Tensor
+            Tensor with all the observations of a training batch.
+        batch_actions: torch.Tensor
+            Tensor with all the actions corresponding to the observations.
+        batch_weights: torch.Tensor
+            Tensor with all weight values for each obs,act pair.
+
+        """
         pass
 
     @abstractmethod
-    def save(self, save_path):
+    def save(self, save_path: str):
+        """Saves the current policy elements.
+
+        Parameters
+        ----------
+        save_path : str
+            Directory where to save the policy elements.
+
+        """
         pass
 
     @abstractmethod
-    def load(self, load_path):
+    def load(self, load_path: str):
+        """Update the current networks with the checkpoints in the provided path.
+
+        Parameters
+        ----------
+        load_path : str
+            Directory where to load the checkpoints from.
+
+        """
         pass
 
     @abstractmethod
     def set_mode(self, mode: NetworkMode):
+        """Utility to set the models/networks in a particular mode.
+
+        Parameters
+        ----------
+        mode : NetworkMode
+            Check :py:class:relezoo.utils.network.NetworkMode
+
+        """
         pass
 
     @abstractmethod
     def to(self, device: str):
+        """Moves the network computations to the given device.
+
+        Parameters
+        ----------
+        device : str
+            Device where to move the network to.
+
+        """
         pass
 
 
@@ -67,6 +156,19 @@ class Algorithm(ABC):
                  logging: Logging,
                  batch_size: int,
                  policy: Optional[Policy] = None):
+        """
+
+        Parameters
+        ----------
+        context : Context
+            The experiment context with global hyper-parameters.
+        logging : Logging
+            The logging mechanism to use.
+        batch_size : int
+            Number of elements per batch per training epoch.
+        policy : Policy
+            The policy instance to use.
+        """
         self.context = context
         self.logger = logging
         self.policy = policy
@@ -119,6 +221,16 @@ class Algorithm(ABC):
 
     @abstractmethod
     def train_epoch(self, env: Environment, batch_size: int):
+        """Train one epoch as per Algorithm implementation
+
+        Parameters
+        ----------
+        env : Environment
+            Training Environment.
+        batch_size : int
+            The batch size for this training epoch.
+
+        """
         pass
 
     def evaluate(self, env: Environment, render: bool = False):
@@ -209,8 +321,42 @@ class Algorithm(ABC):
         return f"Playing finished -- Mean reward {mean_reward:.2f}, mean episode length: {mean_length:.2f}", \
                mean_reward, mean_length
 
+    def _log(self, batch_loss, batch_returns, batch_lens):
+        """General metric logging.
+
+        Parameters
+        ----------
+        batch_loss : float
+            Loss obtained during one training batch.
+        batch_returns : List[float]
+            List of rewards per batch step/episode.
+        batch_lens: List[int]
+            List of episode lengths for a batch.
+
+        """
+        if self.logger is not None:
+            self.logger.log_scalar('training/loss', batch_loss, self.train_steps)
+            self.logger.log_scalar('training/return', np.mean(batch_returns), self.train_steps)
+            self.logger.log_scalar('training/mean_episode_length', np.mean(batch_lens), self.train_steps)
+
     def save(self, save_path: str) -> None:
+        """Forward to the Policy's saving routine.
+
+        Parameters
+        ----------
+        save_path : str
+            Directory where to store the policy checkpoints.
+
+        """
         self.policy.save(save_path)
 
     def load(self, load_path: str) -> None:
+        """Forward to the Policy's loading routine.
+
+        Parameters
+        ----------
+        load_path : str
+            Directory where to load from the policy checkpoints.
+
+        """
         self.policy.load(load_path)
