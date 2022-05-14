@@ -97,7 +97,9 @@ class TensorboardLogging(Logging):
                               name: str,
                               frames: Union[list, np.ndarray],
                               fps: int = 16,
-                              step: Optional[int] = None):
+                              step: Optional[int] = None,
+                              auto_clean: bool = True
+                              ):
         # T x H x W x C
         sequence = np.array(frames) if isinstance(frames, list) else frames
         # T x C x H x W
@@ -112,7 +114,7 @@ class TensorboardLogging(Logging):
             fps=fps
         )
 
-    def log_table(self, name: str, col_params: Dict[str, List[Any]], data: List[Any]):
+    def log_table_row(self, name: str, col_params: Dict[str, str], data: List[Any]):
         """No-op. Tensorboard does not support tables."""
         pass
 

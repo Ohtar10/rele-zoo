@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections import OrderedDict
 from typing import Optional, Any, Tuple
 
 import numpy as np
@@ -254,7 +255,7 @@ class Algorithm(ABC):
 
             action = self.policy.act(torch.from_numpy(obs)).cpu().numpy()
             obs, reward, done, _ = env.step(action)
-            episode_return += reward
+            episode_return += reward[0]
             episode_length += 1
             if done:
                 break
@@ -267,6 +268,22 @@ class Algorithm(ABC):
 
         if render:
             self.logger.log_video_from_frames("live-play", render_frames, fps=16, step=self.train_steps)
+            self.logger.log_table_row(
+                "play_progress",
+                OrderedDict({
+                    "step": "noop",
+                    "video": f"video_file(logging-video-{self.train_steps}.mp4)",
+                    "episode_reward": "noop",
+                    "episode_length": "noop",
+                    f'mean_reward_over_{self.mean_reward_window}_episodes': "noop"}),
+                [
+                    self.train_steps,
+                    render_frames,
+                    episode_return,
+                    episode_length,
+                    np.mean(self.avg_return_pool)
+                ]
+            )
 
     def play(self, env: Environment) -> Tuple[str, ndarray, ndarray]:
         """Use the current policy to play in the provided environment.

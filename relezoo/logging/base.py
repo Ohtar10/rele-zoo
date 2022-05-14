@@ -129,7 +129,8 @@ class Logging(abc.ABC):
                               name: str,
                               frames: Union[list, np.ndarray],
                               fps: int = 16,
-                              step: Optional[int] = None):
+                              step: Optional[int] = None,
+                              auto_clean: bool = False):
         """Log video from frames
 
         This method will generate the video from the
@@ -147,13 +148,15 @@ class Logging(abc.ABC):
             Frames per second to generate the video.
         step : int
             Step number in which this metric was obtained.
-
+        auto_clean : bool
+            Determines if the generated video file should
+            be automatically deleted after this call.
 
         """
         pass
 
     @abstractmethod
-    def log_table(self, name: str, col_params: Dict[str, List[Any]], data: List[Any]):
+    def log_table_row(self, name: str, col_params: Dict[str, str], data: List[Any]):
         """Logs the provided data as a table.
 
         This method will inspect the provided data

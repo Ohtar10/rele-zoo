@@ -30,7 +30,9 @@ class TestAdhoc:
                 f"environments@env_train={env_train}",
                 f"environments@env_test={env_test}",
                 f"algorithm={algorithm}",
-                "logger=tensorboard"
+                "logger=wandb",
+                "logger.project=Relezoo-test",
+                "logger.name=adhoc"
             ])
             try:
                 cfg.context.epochs = 5

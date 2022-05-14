@@ -100,14 +100,40 @@ class TestWandbLogging:
         logger.log_grads(mock_model, step)
         mocked_wandb.log.assert_called_once()
 
-    def test_log_video_from_frames(self, mocked_wandb):
+    @pytest.mark.parametrize(
+        ("step", "auto_clean"),
+        [
+            (10, True),
+            (None, True),
+            (10, False),
+            (None, False)
+        ]
+    )
+    def test_log_video_from_frames(self, mocked_wandb, step, auto_clean):
         params = {"project": "test"}
         logger = WandbLogging(**params)
         tag = "a_video"
         frames = np.random.randint(0, 255+1, (10, 24, 24, 3))
         frames = [f for f in frames]
-        step = 10
-        logger.log_video_from_frames(tag, frames, fps=16, step=step)
+        logger.log_video_from_frames(tag, frames, fps=16, step=step, auto_clean=auto_clean)
         mocked_wandb.log.assert_called_once_with(
             {tag: mocked_wandb.Video(), "step": step}
         )
+        logger.close()
+
+    def test_log_table_row(self, mocked_wandb):
+        params = {"project": "test"}
+        logger = WandbLogging(**params)
+        tag = "a_table"
+        frames = np.random.randint(0, 255 + 1, (10, 24, 24, 3))
+        data = [0, [f for f in frames], 'file-name.mp4']
+        col_params = {
+            "idx": "noop",
+            "video": "video(16,file_name.mp4)",
+            "video_file": "video_file(file_name.mp4)"
+        }
+        logger.log_table_row(tag, col_params, data)
+        mocked_wandb.Table.assert_called_once_with(columns=list(col_params.keys()))
+        assert mocked_wandb.Video.call_count == 2
+
+
