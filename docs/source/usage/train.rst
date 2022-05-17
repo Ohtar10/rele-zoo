@@ -129,7 +129,7 @@ rollouts, you can do the following:
 
 .. code-block:: console
 
-  xvfb-run -s "-screen 0 1400x900x24" relezoo-run
+  xvfb-run -a -s "-screen 0 1400x900x24" relezoo-run
 
 
 Checkpoints
