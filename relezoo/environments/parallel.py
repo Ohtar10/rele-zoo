@@ -125,7 +125,7 @@ class ParallelGym(Environment, ABC):
         pass
 
     def seed(self, seed: int):
-        for i, env in enumerate(self.__envs):
+        for i, env in enumerate(self.__envs, start=1):
             env.seed.remote(seed + i)
 
 
