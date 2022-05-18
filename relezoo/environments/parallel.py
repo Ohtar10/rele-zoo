@@ -22,6 +22,9 @@ class RayGym(object):
     def reset(self) -> np.ndarray:
         return self.env.reset()
 
+    def seed(self, seed: int):
+        self.env.seed(seed)
+
 
 class ParallelGym(Environment, ABC):
     """Multi Agent Parallel Gym environments.
@@ -122,6 +125,7 @@ class ParallelGym(Environment, ABC):
         pass
 
     def seed(self, seed: int):
-        pass
+        for i, env in enumerate(self.__envs):
+            env.seed.remote(seed + i)
 
 
