@@ -16,6 +16,7 @@ context:
   eval_every: 1
   render: False
   render_every: 1
+  render_fps: 16
   mean_reward_window: 100
   checkpoints: checkpoints/
   resume_from: # previous checkpoints path to resume from

@@ -221,9 +221,7 @@ class Algorithm(ABC):
                     f"mean_reward_{self.mean_reward_window}": f"{np.mean(self.avg_return_pool):.2f}"
                 })
                 progress.update()
-                if self.logger is not None:
-                    self.logger.flush()
-        if self.logger is not None:
+                self.logger.flush()
             self.logger.close()
 
         mean_reward = np.mean(self.avg_return_pool)
@@ -277,7 +275,9 @@ class Algorithm(ABC):
                                np.mean(self.avg_return_pool), step=self.train_steps)
 
         if render:
-            self.logger.log_video_from_frames("live-play", render_frames, fps=16, step=self.train_steps)
+            self.logger.log_video_from_frames(
+                "live-play", render_frames, fps=self.context.render_fps, step=self.train_steps
+            )
             self.logger.log_table_row(
                 "play_progress",
                 OrderedDict({
@@ -322,12 +322,13 @@ class Algorithm(ABC):
             ep_rewards = []
             ep_lengths = []
             for i in range(1, episodes + 1):
+                render_frames = []
                 obs = env.reset()
                 ep_length = 1
                 ep_reward = 0
                 while True:
                     if render:
-                        env.render()
+                        render_frames.append(env.render(mode='rgb_array'))
 
                     action = self.policy.act(torch.from_numpy(obs)).cpu().numpy()
                     obs, reward, done, _ = env.step(action)
@@ -337,12 +338,21 @@ class Algorithm(ABC):
                     ep_length += 1
                 ep_lengths.append(ep_length)
                 ep_rewards.append(ep_reward)
+                self.logger.log_scalar("play/episode_reward", ep_reward, step=i)
+                self.logger.log_scalar("play/episode_length", ep_length, step=i)
+                if render:
+                    self.logger.log_video_from_frames(
+                        "live-play", render_frames, fps=self.context.render_fps, step=i
+                    )
                 progress.set_postfix({
                     "Avg. reward": f"{np.mean(ep_rewards):.2f}",
                     "Avg. ep length": f"{np.mean(ep_length):.2f}"
                 })
+                self.logger.flush()
                 progress.update()
-
+            self.logger.log_scalar("play/mean_episode_reward", np.mean(ep_rewards))
+            self.logger.log_scalar("play/mean_episode_length", np.mean(ep_length))
+        self.logger.close()
         mean_reward = np.mean(ep_rewards)
         mean_length = np.mean(ep_length)
         return f"Playing finished -- Mean reward {mean_reward:.2f}, mean episode length: {mean_length:.2f}", \
