@@ -5,7 +5,7 @@ Basic
 
 Installation
 ------------
-***Note:** To use the baselines, you need [Git LFS](https://git-lfs.github.com/) extension installed so you can
+***Note:** To use the baselines, you need `Git LFS <https://git-lfs.github.com/>`_ extension installed so you can
 pull the binaries from the repo.
 
 To use Relezoo, you must clone the repo and install it via Make:
