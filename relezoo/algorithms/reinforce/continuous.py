@@ -1,4 +1,3 @@
-import os
 from typing import Optional, Dict, Any
 
 import torch
@@ -6,7 +5,6 @@ import torch.optim as optim
 
 from relezoo.algorithms.base import Policy
 from relezoo.networks.base import Network
-from relezoo.utils.network import NetworkMode
 from relezoo.utils.noise import make_noise
 
 
@@ -37,7 +35,9 @@ class ReinforceContinuousPolicy(Policy):
         self.noise = None
         if noise is not None:
             self._build_noise(noise)
-        self.device = "cpu"
+        self.nets = {
+            "net": "net.cpt"
+        }
 
     def _build_noise(self, noise: Dict[str, Any]):
         name = noise['name']
@@ -45,12 +45,6 @@ class ReinforceContinuousPolicy(Policy):
         if 'size' in params.keys():
             params['size'] = self.out_shape
         self.noise = make_noise(name, params)
-
-    def set_mode(self, mode: NetworkMode):
-        if mode == NetworkMode.TRAIN:
-            self.net.train()
-        else:
-            self.net.eval()
 
     def _get_policy(self, obs: torch.Tensor):
         mu, sigma = self.net(obs)
@@ -102,14 +96,3 @@ class ReinforceContinuousPolicy(Policy):
         logp = self._get_policy(obs).log_prob(actions)
         return -(logp * rtau).mean()
 
-    def save(self, save_path: str):
-        path = os.path.join(save_path, f"{self.__class__.__name__}.cpt")
-        torch.save(self.net, path)
-
-    def load(self, load_path):
-        device = "cuda" if self.context and self.context.gpu and torch.cuda.is_available() else "cpu"
-        self.net = torch.load(load_path, map_location=torch.device(device))
-
-    def to(self, device: str):
-        self.device = device
-        self.net = self.net.to(device)

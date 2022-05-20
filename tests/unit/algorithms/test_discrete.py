@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 from kink import di
 
+from relezoo.algorithms.base import Policy
 from relezoo.algorithms.reinforce.discrete import ReinforceDiscretePolicy
 from relezoo.algorithms.reinforce.core import Reinforce
 from relezoo.algorithms.xentropy import CrossEntropyDiscretePolicy
@@ -52,7 +53,7 @@ class TestDiscreteAlgorithms:
 
     @mock.patch("torch.nn.Module")
     def test_save_policy(self, mock_net, algo_class, policy_class):
-        with mock.patch(".".join([policy_class.__module__, "torch"])) as mocked_torch:
+        with mock.patch(".".join([Policy.__module__, "torch"])) as mocked_torch:
             dummy_parameters = [nn.Parameter(torch.tensor([1., 2.]))]
             mock_net.parameters.return_value = dummy_parameters
             policy = policy_class(mock_net)
@@ -63,7 +64,7 @@ class TestDiscreteAlgorithms:
     @mock.patch("torch.nn.Module")
     @mock.patch("gym.Env")
     def test_load_agent(self, mock_env, mock_net, algo_class, policy_class):
-        with mock.patch(".".join([policy_class.__module__, "torch"])) as mocked_torch:
+        with mock.patch(".".join([Policy.__module__, "torch"])) as mocked_torch:
             dummy_parameters = [nn.Parameter(torch.tensor([1., 2.]))]
             mock_net.parameters.return_value = dummy_parameters
             mocked_torch.load.return_value = mock_net

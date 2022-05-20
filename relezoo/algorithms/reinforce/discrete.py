@@ -1,4 +1,3 @@
-import os.path
 from typing import Optional
 
 import numpy as np
@@ -7,11 +6,11 @@ import torch.optim as optim
 
 from relezoo.algorithms.base import Policy
 from relezoo.networks.base import Network
-from relezoo.utils.network import NetworkMode
 
 
 class ReinforceDiscretePolicy(Policy):
-    """Policy
+    """Reinforce Discrete Policy.
+
     This class represents a vanilla policy for REINFORCE.
     It is meant to take actions given an observation
     and the underlying neural network.
@@ -22,6 +21,7 @@ class ReinforceDiscretePolicy(Policy):
     This policy relies on categorical distribution to
     select actions. Hence, this policy only works for
     discrete action spaces.
+
     """
 
     def __init__(self,
@@ -36,13 +36,9 @@ class ReinforceDiscretePolicy(Policy):
         self.eps_min = eps_min
         self.eps_decay = eps_decay
         self.optimizer = optim.Adam(self.net.parameters(), learning_rate)
-        self.device = "cpu"
-
-    def set_mode(self, mode: NetworkMode):
-        if mode == NetworkMode.TRAIN:
-            self.net.train()
-        else:
-            self.net.eval()
+        self.nets = {
+            "net": "net.cpt"
+        }
 
     def act(self, obs: torch.Tensor) -> (torch.Tensor, int):
         """act.
@@ -95,17 +91,5 @@ class ReinforceDiscretePolicy(Policy):
         """
         logp = self._get_policy(obs).log_prob(actions)
         return -(logp * weights).mean()
-
-    def save(self, save_path: str):
-        path = os.path.join(save_path, f"{self.__class__.__name__}.cpt")
-        torch.save(self.net, path)
-
-    def load(self, load_path):
-        device = "cuda" if self.context and self.context.gpu and torch.cuda.is_available() else "cpu"
-        self.net = torch.load(load_path, map_location=torch.device(device))
-
-    def to(self, device: str) -> None:
-        self.device = device
-        self.net = self.net.to(device)
 
 

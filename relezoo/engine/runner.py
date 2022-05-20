@@ -1,12 +1,13 @@
+import logging
 import os
-from kink import di, inject
 from pathlib import Path
 from typing import Any, Optional
-import logging
-import numpy as np
-import torch
 
+import numpy as np
+import ray
+import torch
 from hydra.utils import instantiate
+from kink import di, inject
 from omegaconf import DictConfig, OmegaConf
 
 from relezoo.environments.base import Environment
@@ -44,6 +45,9 @@ class Runner:
         Initializes the experiment objects as
         per hydra configuration.
         """
+        if 'num_envs' in cfg.env_train and not ray.is_initialized():
+            ray.init(**cfg.ray.init)
+
         self.cfg = cfg
         self.env_train: Environment = instantiate(cfg.env_train)
         self.env_test: Environment = instantiate(cfg.env_test)
@@ -53,13 +57,12 @@ class Runner:
         di[Logging] = instantiate(cfg.logger)
         di[Context] = Context(self.cfg.context)
 
+        # TODO this is not scalable. Expects specifics from the config
         if self.cfg.network.infer_in_shape:
-            # TODO this is not scalable. Expects specifics from the config
             in_shape = self.env_train.get_observation_space()[1]
             self.cfg.algorithm.policy.network.in_shape = in_shape
 
         if self.cfg.network.infer_out_shape:
-            # TODO this is not scalable. Expects specifics from the config
             out_shape = self.env_train.get_action_space()[1]
             self.cfg.algorithm.policy.network.out_shape = out_shape
 
@@ -99,4 +102,8 @@ class Runner:
         di.clear_cache()
         return result
 
+    @staticmethod
+    def teardown():
+        if ray.is_initialized():
+            ray.shutdown()
 

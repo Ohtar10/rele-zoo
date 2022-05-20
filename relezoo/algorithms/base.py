@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict
 from typing import Optional, Any, Tuple
 
+import os
 import numpy as np
 import torch
 from kink import inject
@@ -44,6 +45,8 @@ class Policy(ABC):
             The experiment context with general hyper-parameters.
         """
         self.context = context
+        self.nets = {}
+        self.device = "cpu"
 
     @abstractmethod
     def act(self, obs: torch.Tensor) -> (torch.Tensor, int):
@@ -87,7 +90,6 @@ class Policy(ABC):
         """
         pass
 
-    @abstractmethod
     def save(self, save_path: str):
         """Saves the current policy elements.
 
@@ -97,9 +99,10 @@ class Policy(ABC):
             Directory where to save the policy elements.
 
         """
-        pass
+        for key, value in self.nets.items():
+            path = os.path.join(save_path, value)
+            torch.save(self.__getattribute__(key), path)
 
-    @abstractmethod
     def load(self, load_path: str):
         """Update the current networks with the checkpoints in the provided path.
 
@@ -109,9 +112,11 @@ class Policy(ABC):
             Directory where to load the checkpoints from.
 
         """
-        pass
+        device = "cuda" if self.context and self.context.gpu and torch.cuda.is_available() else "cpu"
+        for key, value in self.nets.items():
+            path = os.path.join(load_path, value)
+            self.__setattr__(key, torch.load(path, map_location=torch.device(device)))
 
-    @abstractmethod
     def set_mode(self, mode: NetworkMode):
         """Utility to set the models/networks in a particular mode.
 
@@ -121,9 +126,12 @@ class Policy(ABC):
             Check :py:class:relezoo.utils.network.NetworkMode
 
         """
-        pass
+        for key in self.nets.keys():
+            if mode == NetworkMode.TRAIN:
+                self.__getattribute__(key).train()
+            else:
+                self.__getattribute__(key).eval()
 
-    @abstractmethod
     def to(self, device: str):
         """Moves the network computations to the given device.
 
@@ -133,7 +141,9 @@ class Policy(ABC):
             Device where to move the network to.
 
         """
-        pass
+        self.device = device
+        for key in self.nets.keys():
+            self.__setattr__(key, self.__getattribute__(key).to(device))
 
 
 class Algorithm(ABC):

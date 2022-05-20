@@ -1,5 +1,5 @@
-import os
 from typing import Optional
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -7,10 +7,19 @@ from torch import optim
 
 from relezoo.algorithms.base import Policy
 from relezoo.networks.base import Network
-from relezoo.utils.network import NetworkMode
 
 
 class CrossEntropyDiscretePolicy(Policy):
+    """Cross Entropy Method - Discrete Policy.
+
+    This policy works with the cross entropy method
+    algorithm. The learning step is just a supervised
+    learning approach in which the given trajectories
+    are expected to be imitated, so a simple
+    cross entropy loss is enough to make the policy
+    learn.
+
+    """
 
     def __init__(self,
                  network: Network,
@@ -25,13 +34,9 @@ class CrossEntropyDiscretePolicy(Policy):
         self.eps_decay = eps_decay
         self.objective = nn.CrossEntropyLoss()
         self.optimizer = optim.Adam(self.net.parameters(), learning_rate)
-        self.device = 'cpu'
-
-    def set_mode(self, mode: NetworkMode):
-        if mode == NetworkMode.TRAIN:
-            self.net.train()
-        else:
-            self.net.eval()
+        self.nets = {
+            "net": "net.cpt"
+        }
 
     def act(self, obs: torch.Tensor) -> (torch.Tensor, int):
         if 0.0 < self.eps < np.random.random():
@@ -46,6 +51,23 @@ class CrossEntropyDiscretePolicy(Policy):
         return torch.distributions.Categorical(logits=logits).sample()
 
     def learn(self, batch_obs: torch.Tensor, batch_actions: torch.Tensor, batch_weights: Optional[torch.Tensor] = None):
+        """Learn.
+
+        Expects a batch of observations, actions and ignorable weights.
+        The network will train via cross entropy loss of predicted
+        actions against the observations and the provided actions as
+        ground truth.
+
+        Parameters
+        ----------
+        batch_obs : torch.Tensor
+            Batch of observations
+        batch_actions : torch.Tensor
+            Batch of actions taken per observation
+        batch_weights : Optional[torch.Tensor]
+            Ignored.
+
+        """
         batch_obs = batch_obs.to(self.device)
         batch_actions = torch.squeeze(batch_actions).to(torch.long).to(self.device)
         self.optimizer.zero_grad()
@@ -54,17 +76,5 @@ class CrossEntropyDiscretePolicy(Policy):
         loss.backward()
         self.optimizer.step()
         return loss
-
-    def save(self, save_path):
-        path = os.path.join(save_path, f"{self.__class__.__name__}.cpt")
-        torch.save(self.net, path)
-
-    def load(self, load_path):
-        device = "cuda" if self.context and self.context.gpu and torch.cuda.is_available() else "cpu"
-        self.net = torch.load(load_path, map_location=torch.device(device))
-
-    def to(self, device: str) -> None:
-        self.device = device
-        self.net = self.net.to(device)
 
 

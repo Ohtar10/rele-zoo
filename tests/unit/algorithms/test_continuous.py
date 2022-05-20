@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 from kink import di
 
+from relezoo.algorithms.base import Policy
 from relezoo.algorithms.reinforce import Reinforce, ReinforceContinuousPolicy
 from relezoo.algorithms.xentropy import CrossEntropyMethod, CrossEntropyContinuousPolicy
 from relezoo.logging.base import Logging
@@ -50,7 +51,7 @@ class TestContinuousAlgorithms:
 
     @mock.patch("torch.nn.Module")
     def test_save_policy(self, mock_net, algo_class, policy_class):
-        with mock.patch(".".join([policy_class.__module__, "torch"])) as mocked_torch:
+        with mock.patch(".".join([Policy.__module__, "torch"])) as mocked_torch:
             dummy_parameters = [nn.Parameter(torch.tensor([1., 2.]))]
             mock_net.parameters.return_value = dummy_parameters
             policy = policy_class(mock_net)
@@ -60,7 +61,7 @@ class TestContinuousAlgorithms:
 
     @mock.patch("torch.nn.Module")
     def test_load_agent(self, mock_net, algo_class, policy_class):
-        with mock.patch(".".join([policy_class.__module__, "torch"])) as mocked_torch:
+        with mock.patch(".".join([Policy.__module__, "torch"])) as mocked_torch:
             dummy_parameters = [nn.Parameter(torch.tensor([1., 2.]))]
             mock_net.parameters.return_value = dummy_parameters
             mocked_torch.load.return_value = mock_net

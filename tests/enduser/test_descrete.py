@@ -91,7 +91,7 @@ class TestDiscreteAlgorithmsCli:
     )
     def test_play(self, environment, algorithm) -> None:
         checkpoint = os.path.join(
-                    BASELINES_PATH, algorithm.split('-')[0], environment, f"{environment.split('/')[-1]}.cpt"
+                    BASELINES_PATH, algorithm.split('-')[0], environment
                 )
         if not (os.path.exists(checkpoint)):
             pytest.skip("Baseline not available")
