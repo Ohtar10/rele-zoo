@@ -71,7 +71,7 @@ jobs:
       - name: Run tool commands
         run: |
           relezoo-run context.epochs=5
-          relezoo-run context.epochs=5 context.mode=play context.checkpoints=../../../baselines/reinforce/classic_control/cartpole/cartpole.cpt
+          relezoo-run context.epochs=5 context.mode=play context.checkpoints=baselines/reinforce/classic_control/cartpole/
         
 
 #      - name: Generate badges

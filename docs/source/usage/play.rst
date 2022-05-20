@@ -10,7 +10,7 @@ By default, ReleZoo runs in training mode. To change this behavior simply run th
 
 .. code-block:: console
 
-   relezoo-run context.mode=play context.checkpoints=../../../baselines/reinforce/classic_control/cartpole/
+   relezoo-run context.mode=play context.checkpoints=baselines/reinforce/classic_control/cartpole/
 
 This will trigger the default environment and algorithm in play or inference mode using the provided
 checkpoint as loaded model.

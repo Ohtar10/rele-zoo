@@ -19,7 +19,7 @@ context:
   render_fps: 16
   mean_reward_window: 100
   checkpoints: checkpoints/
-  resume_from: # previous checkpoints path to resume from
+  resume_from: # previous checkpoint path to resume from
   start_at_step: 0 # set this to a specific step to start from if resuming from a previous run
   epochs: 50
   seed:

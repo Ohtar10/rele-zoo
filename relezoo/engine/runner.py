@@ -93,6 +93,10 @@ class Runner:
                 self.log.info("Saving current progress...")
                 self.algorithm.save(os.path.join(self.workdir, ctx.checkpoints))
         elif "play" == ctx.mode:
+            # Baselines are expected to be three directories up
+            if ctx.checkpoints.startswith("baselines"):
+                ctx.checkpoints = f"../../../{ctx.checkpoints}"
+
             self.algorithm.load(ctx.checkpoints)
             try:
                 result, _, _ = self.algorithm.play(self.env_test)

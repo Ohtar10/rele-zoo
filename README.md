@@ -23,19 +23,25 @@ conda activate rele-zoo
 
 ## Usage
 ### Run tool
-Run algorithms and tasks with `relezoo-run`, run the `--help` option to check the default values.
+Run algorithms and tasks with `relezoo-run`. The tool is powered by [hydra](https://hydra.cc/), 
+by default, it will train a REINFORCE algorithm in the OpenAI Gym cartpole environment and generate 
+some tensorflow logs in the generated `output` folder.
 
-The run tool is powered by [hydra](https://hydra.cc/), by default, the tool will run a REINFORCE algorithm in the OpenAI
-Gym cartpole environment and generate some tensorflow logs in the generated `output` folder. You can change any
-configuration parameter as needed, for example, to run against `Acrobot-v1` environment instead, just run the tool
-like this:
+```bash
+relezoo-run
+```
+
+Run the `--help` option to check the default values. You can change any configuration parameter as needed, for example, 
+to run against `Acrobot-v1` environment instead, just run the tool like this:
+
 ```bash
 relezoo-run environments@env_train=acrobot
 ```
 By default, `relezoo-run` runs in train mode, to run in test mode, specify the property and the path to the checkpoints
-as per chosen algorithm
+as per chosen algorithm. For example to use the baselines within this repository:
+
 ```bash
-relezoo-run context.mode=play context.epochs=5 context.render=true checkpoints=../../../baselines/reinforce/cartpole/
+relezoo-run context.mode=play context.epochs=5 context.render=true checkpoints=baselines/reinforce/cartpole/
 ```
 
 ### Shell

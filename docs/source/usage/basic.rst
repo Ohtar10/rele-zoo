@@ -5,6 +5,8 @@ Basic
 
 Installation
 ------------
+***Note:** To use the baselines, you need [Git LFS](https://git-lfs.github.com/) extension installed so you can
+pull the binaries from the repo.
 
 To use Relezoo, you must clone the repo and install it via Make:
 
@@ -25,6 +27,9 @@ Or directly via pip:
     conda env create -f environment.yaml
     conda activate
     pip install .
+
+If you want to use the baselines and you cloned the repository before installing Git LFS, after installing it,
+simply run ``git lfs fetch`` or ``git lfs pull`` inside local repository to fetch the actual binaries.
 
 
 Verify Installation
