@@ -45,16 +45,16 @@ class WandbLogging(Logging):
         wandb.finish()
 
     def log_scalar(self, name: str, data: Any, step: Optional[int] = None):
-        wandb.log({name: data, "step": step})
+        wandb.log({name: data, "epoch": step})
 
     def log_image(self, name: str, data: Any, step: Optional[int] = None):
-        wandb.log({name: wandb.Image(data), "step": step})
+        wandb.log({name: wandb.Image(data), "epoch": step})
 
     def log_video(self, name: str, data: Any, step: Optional[int] = None, **kwargs):
-        wandb.log({name: wandb.Video(data), "step": step})
+        wandb.log({name: wandb.Video(data), "epoch": step})
 
     def log_histogram(self, name: str, data: Any, step: Optional[int] = None):
-        wandb.log({name: wandb.Histogram(data), "step": step})
+        wandb.log({name: wandb.Histogram(data), "epoch": step})
 
     def log_grads(self, model: Any, step: Optional[int] = None):
         assert isinstance(model, nn.Module), "model must be a torch module"

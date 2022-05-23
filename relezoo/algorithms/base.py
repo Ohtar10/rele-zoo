@@ -269,16 +269,11 @@ class Algorithm(ABC):
                 break
 
         self.avg_return_pool.append(episode_return)
-        self.logger.log_scalar("evaluation/return_steps", episode_return, step=self.train_steps)
-        self.logger.log_scalar("evaluation/return_samples", episode_return, step=self.train_steps * self.batch_size)
-        self.logger.log_scalar('evaluation/episode_length_steps', episode_length, step=self.train_steps)
-        self.logger.log_scalar('evaluation/episode_length_samples', episode_length,
-                               step=self.train_steps * self.batch_size)
-        self.logger.log_scalar(f'evaluation/mean_reward_over_{self.mean_reward_window}_episodes_steps',
+        self.logger.log_scalar("evaluation/return", episode_return, step=self.train_steps)
+        self.logger.log_scalar("evaluation/num_samples", self.train_steps * self.batch_size, step=self.train_steps)
+        self.logger.log_scalar('evaluation/episode_length', episode_length, step=self.train_steps)
+        self.logger.log_scalar(f'evaluation/mean_reward_over_{self.mean_reward_window}_episodes',
                                np.mean(self.avg_return_pool), step=self.train_steps)
-        self.logger.log_scalar(f'evaluation/mean_reward_over_{self.mean_reward_window}_episodes_samples',
-                               np.mean(self.avg_return_pool), step=self.train_steps * self.batch_size)
-
         if render:
             self.logger.log_video_from_frames(
                 "live-play", render_frames, fps=self.context.render_fps, step=self.train_steps
@@ -377,14 +372,9 @@ class Algorithm(ABC):
 
         """
         if self.logger is not None:
-            self.logger.log_scalar('training/loss_steps', batch_loss, self.train_steps)
-            self.logger.log_scalar('training/loss_samples', batch_loss, self.train_steps * self.batch_size)
-            self.logger.log_scalar('training/return_steps', np.mean(batch_returns), self.train_steps)
-            self.logger.log_scalar('training/return_samples', np.mean(batch_returns),
-                                   self.train_steps * self.batch_size)
-            self.logger.log_scalar('training/mean_episode_length_step', np.mean(batch_lens), self.train_steps)
-            self.logger.log_scalar('training/mean_episode_length_samples', np.mean(batch_lens),
-                                   self.train_steps * self.batch_size)
+            self.logger.log_scalar('training/loss', batch_loss, self.train_steps)
+            self.logger.log_scalar('training/return', np.mean(batch_returns), self.train_steps)
+            self.logger.log_scalar('training/mean_episode_length', np.mean(batch_lens), self.train_steps)
 
     def save(self, save_path: str) -> None:
         """Forward to the Policy's saving routine.

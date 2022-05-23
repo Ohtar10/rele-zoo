@@ -42,7 +42,7 @@ class TestWandbLogging:
         logger = WandbLogging(**params)
         logger.log_scalar("a_scalar", 0.5, 10)
         mocked_wandb.log.assert_called_once_with(
-            {"a_scalar": 0.5, "step": 10}
+            {"a_scalar": 0.5, "epoch": 10}
         )
 
     def test_log_image(self, mocked_wandb):
@@ -53,7 +53,7 @@ class TestWandbLogging:
         step = 10
         logger.log_image(tag, data, step)
         mocked_wandb.log.assert_called_once_with(
-            {tag: mocked_wandb.Image(data), "step": step}
+            {tag: mocked_wandb.Image(data), "epoch": step}
         )
 
     def test_log_video(self, mocked_wandb):
@@ -64,7 +64,7 @@ class TestWandbLogging:
         step = 10
         logger.log_video(tag, data, step)
         mocked_wandb.log.assert_called_once_with(
-            {tag: mocked_wandb.Video(data), "step": step}
+            {tag: mocked_wandb.Video(data), "epoch": step}
         )
 
     def test_log_histogram(self, mocked_wandb):
@@ -75,7 +75,7 @@ class TestWandbLogging:
         step = 10
         logger.log_histogram(tag, data, step)
         mocked_wandb.log.assert_called_once_with(
-            {tag: mocked_wandb.Histogram(data), "step": step}
+            {tag: mocked_wandb.Histogram(data), "epoch": step}
         )
 
     def test_log_grads_watch(self, mocked_wandb):
@@ -101,7 +101,7 @@ class TestWandbLogging:
         mocked_wandb.log.assert_called_once()
 
     @pytest.mark.parametrize(
-        ("step", "auto_clean"),
+        ("epoch", "auto_clean"),
         [
             (10, True),
             (None, True),
@@ -109,15 +109,15 @@ class TestWandbLogging:
             (None, False)
         ]
     )
-    def test_log_video_from_frames(self, mocked_wandb, step, auto_clean):
+    def test_log_video_from_frames(self, mocked_wandb, epoch, auto_clean):
         params = {"project": "test"}
         logger = WandbLogging(**params)
         tag = "a_video"
         frames = np.random.randint(0, 255+1, (10, 24, 24, 3))
         frames = [f for f in frames]
-        logger.log_video_from_frames(tag, frames, fps=16, step=step, auto_clean=auto_clean)
+        logger.log_video_from_frames(tag, frames, fps=16, step=epoch, auto_clean=auto_clean)
         mocked_wandb.log.assert_called_once_with(
-            {tag: mocked_wandb.Video(), "step": step}
+            {tag: mocked_wandb.Video(), "epoch": epoch}
         )
         logger.close()
 
