@@ -15,20 +15,28 @@ ax_config:
     random_seed: null
   is_noisy: true
   params:
-    context.seed:
+    algorithm.batch_size:
       type: choice
       value_type: int
       is_ordered: True
-      values: [123, 456, 789]
+      values: [1024, 2048, 4096, 10240]
     algorithm.policy.learning_rate:
       type: range
       value_type: float
-      bounds: [1e-4, 1e-2]
+      bounds: [1e-4, 1e-1]
     algorithm.policy.eps_start:
       type: range
       value_type: float
-      bounds: [0.2, 0.7]
+      bounds: [0.1, 0.8]
+    algorithm.policy.eps_decay:
+      type: range
+      value_type: float
+      bounds: [0.8, 0.99]
+    algorithm.policy.eps_min:
+      type: range
+      value_type: float
+      bounds: [0.0, 0.2]
     algorithm.elite_percentile:
       type: range
       value_type: float
-      bounds: [70, 95]
+      bounds: [70, 99]
