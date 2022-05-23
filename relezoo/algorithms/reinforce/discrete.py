@@ -50,7 +50,9 @@ class ReinforceDiscretePolicy(Policy):
         if 0.0 < self.eps < np.random.random():
             self.eps = max(self.eps_min, self.eps * self.eps_decay)
             out_features = self.net.get_output_shape()
-            return np.random.randint(0, out_features)
+            batch_size = obs.shape[0]
+            actions = np.random.randint(0, out_features, batch_size)
+            return torch.tensor(actions)
         else:
             logits = self._get_policy(obs)
             action = logits.sample()
