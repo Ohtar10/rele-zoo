@@ -42,7 +42,6 @@ class Reinforce(Algorithm):
             Enable or disable reward to go for episodes.
         """
         super(Reinforce, self).__init__(context, logger, batch_size, policy)
-        self.train_steps = max(0, context.start_at_step - 1)
         self.use_reward_2go = reward_2go
 
     def train_epoch(self, env: Environment, batch_size: int) -> (float, float, int):

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from collections import OrderedDict
+from collections import OrderedDict, deque
 from typing import Optional, Any, Tuple
 
 import os
@@ -184,9 +184,9 @@ class Algorithm(ABC):
         self.logger = logging
         self.policy = policy
         self.batch_size = batch_size
-        self.mean_reward_window = 100
-        self.avg_return_pool = []
-        self.train_steps = 0
+        self.mean_reward_window = context.mean_reward_window
+        self.avg_return_pool = deque(maxlen=self.mean_reward_window)
+        self.train_steps = max(0, context.start_at_step - 1)
 
     def train(self, env: Environment, eval_env: Optional[Environment] = None) -> Any:
         """The main training loop for the algorithm.
