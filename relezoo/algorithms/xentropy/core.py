@@ -55,6 +55,7 @@ class CrossEntropyMethod(Algorithm):
                     env: Environment,
                     batch_size: int) -> (float, float):
         batch = []
+        total_collected_steps = 0
         obs = env.reset()  # (#agents, obs_space)
         batch_obs = [False for _ in range(len(obs))]
         # initialize the rest of the batch elements as a falsy element
@@ -93,6 +94,7 @@ class CrossEntropyMethod(Algorithm):
                     done_return = np.sum(batch_returns[idx])
                     steps = [EpisodeStep(done_obs[i], done_act[i]) for i in range(len(done_obs))]
                     batch.append(Episode(done_return, steps))
+                    total_collected_steps += len(steps)
 
                     # Reset the finished agent
                     obs[dones_idx, :] = env.reset(idx)
@@ -100,7 +102,7 @@ class CrossEntropyMethod(Algorithm):
                     batch_actions[idx] = False
                     batch_returns[idx] = False
 
-                if len(batch) >= batch_size:
+                if total_collected_steps >= batch_size:
                     break
 
         train_obs, train_act, rewards, batch_lens = self._filter_elites(batch, self.elite_percentile)

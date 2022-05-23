@@ -47,7 +47,7 @@ class TestContinuousAlgorithmsIntegration:
         mock_logger = di[Logging]
         algo = algo_class(policy=policy)
         algo.train(env)
-        assert mock_logger.log_scalar.call_count == MAX_TEST_EPISODES * 3
+        assert mock_logger.log_scalar.call_count == MAX_TEST_EPISODES * 3 * 2
 
     def test_smoke_play(self, algo_class, policy_class, net_type):
         env = GymWrapper("Pendulum-v1")
