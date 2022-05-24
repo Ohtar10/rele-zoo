@@ -337,7 +337,8 @@ class Algorithm(ABC):
                                step=self.train_steps, num_samples=self.train_steps * self.batch_size)
         self.logger.log_scalar('evaluation/episode_length', episode_length, step=self.train_steps)
         self.logger.log_scalar(f'evaluation/mean_reward_over_{self.mean_reward_window}_episodes',
-                               np.mean(self.avg_return_pool), step=self.train_steps)
+                               np.mean(self.avg_return_pool), step=self.train_steps,
+                               num_samples=self.train_steps * self.batch_size)
         if render:
             self.logger.log_video_from_frames(
                 "live-play", render_frames, fps=self.context.render_fps, step=self.train_steps
