@@ -45,74 +45,7 @@ class Reinforce(Algorithm):
         self.use_reward_2go = reward_2go
 
     def train_epoch(self, env: Environment, batch_size: int) -> (float, float, int):
-        batch = []
-        total_collected_steps = 0
-        obs = env.reset()
-        batch_obs = [False for _ in range(len(obs))]
-        batch_actions = [False for _ in range(len(obs))]
-        batch_rewards = [False for _ in range(len(obs))]
-
-        while True:
-            batch_obs = [
-                np.concatenate([agent, ob.reshape(1, -1)]) if isinstance(agent, np.ndarray) else ob.reshape(1, -1)
-                for agent, ob in zip(batch_obs, obs)
-            ]
-            actions = self.policy.act(torch.tensor(obs)).cpu().numpy()
-            actions = actions.reshape(-1, 1)  # TODO discrete action of dim 1, and continuous?
-
-            obs, rewards, dones, _ = env.step(actions)
-            rewards = rewards.reshape(-1, 1)
-
-            batch_actions = [
-                np.concatenate([agent, action.reshape(1, -1)]) if isinstance(agent, np.ndarray)
-                else action.reshape(1, -1)
-                for agent, action in zip(batch_actions, actions)
-            ]
-
-            batch_rewards = [
-                np.concatenate([agent, reward.reshape(1, -1)]) if isinstance(agent, np.ndarray)
-                else reward.reshape(1, -1)
-                for agent, reward in zip(batch_rewards, rewards)]
-
-            if np.any(dones):
-                # On episode end, we must build the batch to submit
-                # to later make the policy learn.
-                dones_idx = np.where(dones)[0]
-                for idx in dones_idx:
-                    # get the trajectory of this episode
-                    episode_obs = batch_obs[idx]
-                    episode_act = batch_actions[idx]
-                    episode_return = np.sum(batch_rewards[idx])
-                    rewards_2go = []
-                    if self.use_reward_2go:
-                        rewards_2go = self._reward_2go(batch_rewards[idx])
-
-                    # Despite this being called "weights" this is
-                    # actually R(tau), i.e., the return of the whole
-                    # trajectory, which is replicated through all the
-                    # episode steps as this is how the gradient
-                    # is calculated. See the gradient formula.
-                    steps = [
-                        EpisodeStep(
-                            episode_obs[i],
-                            episode_act[i],
-                            rewards_2go[i] if self.use_reward_2go else episode_return
-                        )
-                        for i in range(len(episode_obs))
-                    ]
-                    total_collected_steps += len(steps)
-                    batch.append(Episode(episode_return, steps))
-
-                    # Reset the finished agent
-                    obs[dones_idx, :] = env.reset(idx)
-                    batch_obs[idx] = False
-                    batch_actions[idx] = False
-                    batch_rewards[idx] = False
-                # Stop condition depends only on the number of steps retrieved
-                # Not necessarily in the number of episodes
-                if total_collected_steps >= batch_size:
-                    break
-
+        batch = self.collect_trajectories(env, batch_size)
         train_obs, train_act, train_weights, batch_returns, batch_lens = self._prepare_batch(batch)
         batch_loss = self.policy.learn(
             train_obs,
@@ -126,8 +59,7 @@ class Reinforce(Algorithm):
 
         return batch_loss, batch_returns, batch_lens
 
-    @staticmethod
-    def _prepare_batch(batch: List[Episode]) -> Any:
+    def _prepare_batch(self, batch: List[Episode]) -> Any:
         train_obs = []
         train_act = []
         train_weights = []
@@ -136,7 +68,13 @@ class Reinforce(Algorithm):
         for episode in batch:
             train_obs.extend([s.observation for s in episode.steps])
             train_act.extend([s.action for s in episode.steps])
-            train_weights.extend([s.weight for s in episode.steps])
+
+            if self.use_reward_2go:
+                rewards_2go = self._reward_2go([s.reward for s in episode.steps])
+                train_weights.extend(rewards_2go)
+            else:
+                train_weights.extend([episode.reward for _ in range(len(episode.steps))])
+
             batch_returns.append(episode.reward)
             batch_lens.append(len(episode.steps))
 
@@ -156,6 +94,6 @@ class Reinforce(Algorithm):
         rtgs = np.zeros_like(rewards)
         for i in reversed(range(n)):
             rtgs[i] = rewards[i] + (rtgs[i + 1] if i+1 < n else 0)
-        return rtgs
+        return [r[0] for r in rtgs]
 
 

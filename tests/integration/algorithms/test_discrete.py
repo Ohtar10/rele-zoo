@@ -53,7 +53,7 @@ class TestDiscreteAlgorithmsIntegration:
         policy = build_policy(env, policy_class)
         algo = algo_class(policy=policy)
         algo.train(env, env)
-        assert mock_logger.log_scalar.call_count == MAX_TEST_EPISODES * 7  # n epochs * 3 metrics (train + eval)
+        assert mock_logger.log_scalar.call_count == MAX_TEST_EPISODES * 6  # n epochs * 3 metrics (train + eval)
 
     def test_smoke_play(self, algo_class, policy_class):
         env = GymWrapper("CartPole-v0")
@@ -77,12 +77,12 @@ class TestDiscreteAlgorithmsIntegration:
         policy = build_policy(env, policy_class)
         algo = algo_class(policy=policy)
         algo.train(env, env)
-        assert mock_logger.log_scalar.call_count == MAX_TEST_EPISODES * 7  # n epochs * 3 metrics
+        assert mock_logger.log_scalar.call_count == MAX_TEST_EPISODES * 6  # n epochs * 3 metrics
 
     @pytest.mark.parametrize(("env_name", "delta", "overrides"), [
-        ("CartPole-v1", 2.0, {
-            ReinforceDiscretePolicy: {"batch_size": 5000},
-            CrossEntropyDiscretePolicy: {"batch_size": 64}
+        ("CartPole-v1", 10.0, {
+            ReinforceDiscretePolicy: {"batch_size": 4096},
+            CrossEntropyDiscretePolicy: {"batch_size": 4096}
         })
     ])
     def test_improvement(self, env_name: str, delta: float, overrides, algo_class, policy_class):
@@ -101,7 +101,7 @@ class TestDiscreteAlgorithmsIntegration:
         algo.train(env, env)
         returns = algo.avg_return_pool
         x = list(range(len(returns)))
-        slope = polynomial.polyfit(x, returns, 1)[-1]
+        slope = polynomial.polyfit(x, returns, 1)[0]
         assert slope >= delta
 
 

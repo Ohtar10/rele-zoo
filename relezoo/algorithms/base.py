@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from collections import OrderedDict, deque
-from typing import Optional, Any, Tuple
+from typing import Optional, Any, Tuple, List
 
 import os
 import numpy as np
@@ -12,7 +12,7 @@ from tqdm import tqdm
 from relezoo.environments.base import Environment
 from relezoo.logging.base import Logging
 from relezoo.utils.network import NetworkMode
-from relezoo.utils.structure import Context
+from relezoo.utils.structure import Context, EpisodeStep, Episode
 
 
 @inject
@@ -242,6 +242,70 @@ class Algorithm(ABC):
         """
         pass
 
+    def collect_trajectories(self, env: Environment, batch_size: int) -> List[Episode]:
+        batch = []
+        total_collected_steps = 0
+        obs = env.reset()
+        batch_obs = [False for _ in range(len(obs))]
+        batch_actions = [False for _ in range(len(obs))]
+        batch_rewards = [False for _ in range(len(obs))]
+
+        while True:
+            batch_obs = [
+                np.concatenate([agent, ob.reshape(1, -1)]) if isinstance(agent, np.ndarray) else ob.reshape(1, -1)
+                for agent, ob in zip(batch_obs, obs)
+            ]
+            actions = self.policy.act(torch.tensor(obs)).cpu().numpy()
+            actions = actions.reshape(-1, 1)  # TODO currently only supports one dimensional action spaces.
+
+            obs, rewards, dones, _ = env.step(actions)
+            rewards = rewards.reshape(-1, 1)
+
+            batch_actions = [
+                np.concatenate([agent, action.reshape(1, -1)]) if isinstance(agent, np.ndarray)
+                else action.reshape(1, -1)
+                for agent, action in zip(batch_actions, actions)
+            ]
+
+            batch_rewards = [
+                np.concatenate([agent, reward.reshape(1, -1)]) if isinstance(agent, np.ndarray)
+                else reward.reshape(1, -1)
+                for agent, reward in zip(batch_rewards, rewards)]
+
+            if np.any(dones):
+                # On episode end, we must build the batch to submit
+                # to later make the policy learn.
+                dones_idx = np.where(dones)[0]
+                for idx in dones_idx:
+                    # get the trajectory of this episode
+                    episode_obs = batch_obs[idx]
+                    episode_act = batch_actions[idx]
+                    episode_rws = batch_rewards[idx]
+                    episode_return = np.sum(batch_rewards[idx])
+
+                    steps = [
+                        EpisodeStep(
+                            episode_obs[i],
+                            episode_act[i],
+                            episode_rws[i]
+                        )
+                        for i in range(len(episode_obs))
+                    ]
+                    total_collected_steps += len(steps)
+                    batch.append(Episode(episode_return, steps))
+
+                    # Reset the finished agent
+                    obs[dones_idx, :] = env.reset(idx)
+                    batch_obs[idx] = False
+                    batch_actions[idx] = False
+                    batch_rewards[idx] = False
+                # Stop condition depends only on the number of steps retrieved
+                # Not necessarily in the number of episodes
+                if total_collected_steps >= batch_size:
+                    break
+
+        return batch
+
     def evaluate(self, env: Environment, render: bool = False):
         """Evaluate the current policy against the provided environment
 
@@ -269,8 +333,8 @@ class Algorithm(ABC):
                 break
 
         self.avg_return_pool.append(episode_return)
-        self.logger.log_scalar("evaluation/return", episode_return, step=self.train_steps)
-        self.logger.log_scalar("evaluation/num_samples", self.train_steps * self.batch_size, step=self.train_steps)
+        self.logger.log_scalar("evaluation/return", episode_return,
+                               step=self.train_steps, num_samples=self.train_steps * self.batch_size)
         self.logger.log_scalar('evaluation/episode_length', episode_length, step=self.train_steps)
         self.logger.log_scalar(f'evaluation/mean_reward_over_{self.mean_reward_window}_episodes',
                                np.mean(self.avg_return_pool), step=self.train_steps)

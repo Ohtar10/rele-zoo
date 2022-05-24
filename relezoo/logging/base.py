@@ -39,7 +39,7 @@ class Logging(abc.ABC):
         pass
 
     @abstractmethod
-    def log_scalar(self, name: str, data: Any, step: Optional[int] = None):
+    def log_scalar(self, name: str, data: Any, step: Optional[int] = None, **kwargs):
         """Log a scalar value
 
         Parameters
@@ -50,12 +50,14 @@ class Logging(abc.ABC):
             Actual value of the metric.
         step : Optional[int]
             Step number in which this metric was obtained.
+        kwargs : dict
+            Additional parameters. Usage subject to logging backend.
 
         """
         pass
 
     @abstractmethod
-    def log_image(self, name: str, data: Any, step: Optional[int] = None):
+    def log_image(self, name: str, data: Any, step: Optional[int] = None, **kwargs):
         """Log an image
 
         Parameters
@@ -67,6 +69,8 @@ class Logging(abc.ABC):
             but it could be different depending on the backend.
         step : Optional[int]
             Step number in which this metric was obtained.
+        kwargs : dict
+            Additional parameters. Usage subject to logging backend.
 
         """
         pass
@@ -91,7 +95,7 @@ class Logging(abc.ABC):
         pass
 
     @abstractmethod
-    def log_histogram(self, name: str, data: Any, step: Optional[int] = None):
+    def log_histogram(self, name: str, data: Any, step: Optional[int] = None, **kwargs):
         """Log histogram
 
         Parameters
@@ -102,12 +106,14 @@ class Logging(abc.ABC):
             Histogram data.
         step : int
             Step number in which this metric was obtained.
+        kwargs : dict
+            Additional parameters. Usage subject to logging backend.
 
         """
         pass
 
     @abstractmethod
-    def log_grads(self, model: Any, step: Optional[int] = None):
+    def log_grads(self, model: Any, step: Optional[int] = None, **kwargs):
         """Log gradients from a pytorch model.
 
         This method will automatically explore the provided
@@ -120,6 +126,8 @@ class Logging(abc.ABC):
             The pytorch model.
         step : int
             Step number in which this metric was obtained.
+        kwargs : dict
+            Additional parameters. Usage subject to logging backend.
 
         """
         pass

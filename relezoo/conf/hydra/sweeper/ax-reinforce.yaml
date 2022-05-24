@@ -27,11 +27,11 @@ ax_config:
     algorithm.policy.eps_start:
       type: range
       value_type: float
-      bounds: [ 0.1, 0.8 ]
+      bounds: [ 0.0, 0.9 ]
     algorithm.policy.eps_decay:
       type: range
       value_type: float
-      bounds: [ 0.8, 0.99 ]
+      bounds: [ 0.0, 0.99 ]
     algorithm.policy.eps_min:
       type: range
       value_type: float

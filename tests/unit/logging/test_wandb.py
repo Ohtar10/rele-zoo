@@ -37,46 +37,102 @@ class TestWandbLogging:
         assert mocked_wandb.init.call_args.kwargs == full_params
         # should not fail
 
-    def test_log_scalar(self, mocked_wandb):
+    @pytest.mark.parametrize(
+        "extras",
+        [
+            {"num_samples": 15},
+            {},
+            None
+        ]
+    )
+    def test_log_scalar(self, mocked_wandb, extras):
         params = {"project": "test"}
         logger = WandbLogging(**params)
-        logger.log_scalar("a_scalar", 0.5, 10)
-        mocked_wandb.log.assert_called_once_with(
-            {"a_scalar": 0.5, "epoch": 10}
-        )
+        if extras is not None:
+            logger.log_scalar("a_scalar", 0.5, 10, **extras)
+            mocked_wandb.log.assert_called_once_with(
+                {**{"a_scalar": 0.5, "epoch": 10}, **extras}
+            )
+        else:
+            logger.log_scalar("a_scalar", 0.5, 10)
+            mocked_wandb.log.assert_called_once_with(
+                {"a_scalar": 0.5, "epoch": 10}
+            )
 
-    def test_log_image(self, mocked_wandb):
+    @pytest.mark.parametrize(
+        "extras",
+        [
+            {"num_samples": 15},
+            {},
+            None
+        ]
+    )
+    def test_log_image(self, mocked_wandb, extras):
         params = {"project": "test"}
         logger = WandbLogging(**params)
         tag = "an_image"
         data = np.random.rand(24, 24, 3)
         step = 10
-        logger.log_image(tag, data, step)
-        mocked_wandb.log.assert_called_once_with(
-            {tag: mocked_wandb.Image(data), "epoch": step}
-        )
+        if extras is not None:
+            logger.log_image(tag, data, step, **extras)
+            mocked_wandb.log.assert_called_once_with(
+                {**{tag: mocked_wandb.Image(data), "epoch": step}, **extras}
+            )
+        else:
+            logger.log_image(tag, data, step)
+            mocked_wandb.log.assert_called_once_with(
+                {tag: mocked_wandb.Image(data), "epoch": step}
+            )
 
-    def test_log_video(self, mocked_wandb):
+    @pytest.mark.parametrize(
+        "extras",
+        [
+            {"num_samples": 15},
+            {},
+            None
+        ]
+    )
+    def test_log_video(self, mocked_wandb, extras):
         params = {"project": "test"}
         logger = WandbLogging(**params)
         tag = "a_video"
         data = np.random.rand(10, 3, 24, 24)
         step = 10
-        logger.log_video(tag, data, step)
-        mocked_wandb.log.assert_called_once_with(
-            {tag: mocked_wandb.Video(data), "epoch": step}
-        )
+        if extras is not None:
+            logger.log_video(tag, data, step, **extras)
+            mocked_wandb.log.assert_called_once_with(
+                {**{tag: mocked_wandb.Video(data), "epoch": step}, **extras}
+            )
+        else:
+            logger.log_video(tag, data, step)
+            mocked_wandb.log.assert_called_once_with(
+                {tag: mocked_wandb.Video(data), "epoch": step}
+            )
 
-    def test_log_histogram(self, mocked_wandb):
+    @pytest.mark.parametrize(
+        "extras",
+        [
+            {"num_samples": 15},
+            {},
+            None
+        ]
+    )
+    def test_log_histogram(self, mocked_wandb, extras):
         params = {"project": "test"}
         logger = WandbLogging(**params)
         tag = "a_histogram"
         data = np.random.rand(3, 24, 24)
         step = 10
-        logger.log_histogram(tag, data, step)
-        mocked_wandb.log.assert_called_once_with(
-            {tag: mocked_wandb.Histogram(data), "epoch": step}
-        )
+        if extras is not None:
+            logger.log_histogram(tag, data, step, **extras)
+            mocked_wandb.log.assert_called_once_with(
+                {**{tag: mocked_wandb.Histogram(data), "epoch": step}, **extras}
+            )
+        else:
+            logger.log_histogram(tag, data, step)
+            mocked_wandb.log.assert_called_once_with(
+                {tag: mocked_wandb.Histogram(data), "epoch": step}
+            )
 
     def test_log_grads_watch(self, mocked_wandb):
         params = {"project": "test"}

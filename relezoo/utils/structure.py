@@ -34,7 +34,7 @@ class EpisodeStep:
     """Class representing a single episode step."""
     observation: np.ndarray
     action: Union[np.ndarray, int, float]
-    weight: Optional[Union[np.ndarray, int, float]] = None
+    reward: Optional[Union[np.ndarray, int, float]] = None
 
 
 @dataclass

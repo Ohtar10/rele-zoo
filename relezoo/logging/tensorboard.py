@@ -52,19 +52,31 @@ class TensorboardLogging(Logging):
     def close(self):
         self.backend.close()
 
-    def log_scalar(self, name: str, data: Any, step: Optional[int] = None):
+    def log_scalar(self, name: str, data: Any, step: Optional[int] = None, **kwargs):
         self.backend.add_scalar(
             tag=name,
             scalar_value=data,
             global_step=step
         )
+        for k, v in kwargs.items():
+            self.backend.add_scalar(
+                tag=f"{name}_{k}",
+                scalar_value=data,
+                global_step=v
+            )
 
-    def log_image(self, name: str, data: Any, step: Optional[int] = None):
+    def log_image(self, name: str, data: Any, step: Optional[int] = None, **kwargs):
         self.backend.add_image(
             tag=name,
             img_tensor=data,
             global_step=step
         )
+        for k, v in kwargs.items():
+            self.backend.add_image(
+                tag=f"{name}_{k}",
+                img_tensor=data,
+                global_step=v
+            )
 
     def log_video(self, name: str, data: Any, step: Optional[int] = None, **kwargs):
         self.backend.add_video(
@@ -74,14 +86,20 @@ class TensorboardLogging(Logging):
             **kwargs
         )
 
-    def log_histogram(self, name: str, data: Any, step: Optional[int] = None):
+    def log_histogram(self, name: str, data: Any, step: Optional[int] = None, **kwargs):
         self.backend.add_histogram(
             tag=name,
             values=data,
             global_step=step
         )
+        for k, v in kwargs.items():
+            self.backend.add_histogram(
+                tag=f"{name}_{k}",
+                values=data,
+                global_step=v
+            )
 
-    def log_grads(self, model: Any, step: Optional[int] = None):
+    def log_grads(self, model: Any, step: Optional[int] = None, **kwargs):
         assert isinstance(model, nn.Module), "model must be a torch module"
         for name, p in model.named_parameters():
             if p.grad is None:
