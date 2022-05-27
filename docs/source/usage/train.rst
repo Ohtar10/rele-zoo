@@ -116,6 +116,13 @@ parameters, there must exist a configuration per algorithm. You can invoke them 
 
    relezoo-run --multirun hydra/sweeper=ax-reinforce hydra.launcher.n_jobs=-1
 
+Note that no other parameter is specified, this is because the default algorithm is REINFORCE. If a different algorithm
+were to be used, the proper parameters should be modified, for example:
+
+.. code-block:: console
+
+   relezoo-run --multirun hydra/sweeper=ax-xentropy hydra.launcher.n_jobs=-1 algorithm-xentropy-discrete
+
 
 Running in Headless Mode
 ------------------------

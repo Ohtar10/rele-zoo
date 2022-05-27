@@ -1,0 +1,42 @@
+# @package hydra.sweeper
+_target_: hydra_plugins.hydra_ax_sweeper.ax_sweeper.AxSweeper
+max_batch_size: null
+ax_config:
+  max_trials: 100
+  early_stop:
+    minimize: false
+    max_epochs_without_improvement: 10
+    epsilon: 1.0e-05
+  experiment:
+    minimize: false
+    objective_name: mean-reward
+  client:
+    verbose_logging: false
+    random_seed: null
+  is_noisy: true
+  params:
+    algorithm.batch_size:
+      type: choice
+      value_type: int
+      is_ordered: True
+      values: [1024, 2048, 4096, 10240]
+    algorithm.policy.learning_rate:
+      type: range
+      value_type: float
+      bounds: [1e-4, 1e-1]
+    algorithm.policy.eps_start:
+      type: range
+      value_type: float
+      bounds: [0.0, 0.9]
+    algorithm.policy.eps_decay:
+      type: range
+      value_type: float
+      bounds: [0.0, 0.99]
+    algorithm.policy.eps_min:
+      type: range
+      value_type: float
+      bounds: [0.0, 0.2]
+    algorithm.elite_percentile:
+      type: range
+      value_type: float
+      bounds: [50, 99]

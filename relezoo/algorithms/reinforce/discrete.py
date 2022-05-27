@@ -71,12 +71,12 @@ class ReinforceDiscretePolicy(Policy):
         batch_weights = batch_weights.to(self.device)
 
         self.optimizer.zero_grad()
-        batch_loss = self._compute_loss(batch_obs, batch_actions, batch_weights)
+        batch_loss = self.compute_loss(batch_obs, batch_actions, batch_weights)
         batch_loss.backward()
         self.optimizer.step()
         return batch_loss
 
-    def _compute_loss(self, obs, actions, weights):
+    def compute_loss(self, obs, actions, weights):
         """compute loss.
         The loss aka the policy gradient, is just
         the multiplication of the log probabilities
@@ -84,9 +84,7 @@ class ReinforceDiscretePolicy(Policy):
         (returns) of the particular episode.
 
         This loss is equivalent to the gradient
-        formula:
-        .. math::
-            \hat{g} = \frac{1}{|D|}\sum_{\tau \in D}\sum_{t=0}^{T}\nabla_\theta log \pi_\theta (a_t | s_t)R(\tau)
+        formula.
 
         See https://spinningup.openai.com/en/latest/spinningup/rl_intro3.html
         Section: Derivation for Basic Policy Gradient
