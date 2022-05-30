@@ -24,14 +24,10 @@ ax_config:
       type: range
       value_type: float
       bounds: [ 1e-4, 1e-1 ]
-    algorithm.policy.eps_start:
-      type: range
-      value_type: float
-      bounds: [ 0.0, 0.9 ]
     algorithm.policy.noise.name:
       type: choice
       value_type: str
-      values: [ou-noise]
+      values: [ou-noise, None]
     algorithm.policy.noise.params.mu:
       type: range
       value_type: float
@@ -40,14 +36,10 @@ ax_config:
       type: range
       value_type: float
       bounds: [ -1.0, 1.0 ]
-    algorithm.policy.eps_decay:
+    algorithm.policy.noise.params.sigma:
       type: range
       value_type: float
-      bounds: [ 0.0, 0.99 ]
-    algorithm.policy.eps_min:
-      type: range
-      value_type: float
-      bounds: [ 0.0, 0.2 ]
+      bounds: [ -1.0, 1.0 ]
     algorithm.reward_2go:
       type: choice
       value_type: bool

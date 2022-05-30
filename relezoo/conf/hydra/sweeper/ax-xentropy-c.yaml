@@ -24,18 +24,22 @@ ax_config:
       type: range
       value_type: float
       bounds: [1e-4, 1e-1]
-    algorithm.policy.eps_start:
+    algorithm.policy.noise.name:
+      type: choice
+      value_type: str
+      values: [ ou-noise, None ]
+    algorithm.policy.noise.params.mu:
       type: range
       value_type: float
-      bounds: [0.0, 0.9]
-    algorithm.policy.eps_decay:
+      bounds: [ -1.0, 1.0 ]
+    algorithm.policy.noise.params.theta:
       type: range
       value_type: float
-      bounds: [0.0, 0.99]
-    algorithm.policy.eps_min:
+      bounds: [ -1.0, 1.0 ]
+    algorithm.policy.noise.params.sigma:
       type: range
       value_type: float
-      bounds: [0.0, 0.2]
+      bounds: [ -1.0, 1.0 ]
     algorithm.elite_percentile:
       type: range
       value_type: float

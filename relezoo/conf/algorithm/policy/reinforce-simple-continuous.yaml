@@ -5,7 +5,7 @@ learning_rate: 1e-5
 noise:
   name: ou-noise
   params:
-    seed: 123
+    seed:
     size: "infer"
     mu: 0.0
     theta: 1.0

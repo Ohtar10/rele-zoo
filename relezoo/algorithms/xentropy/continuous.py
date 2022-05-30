@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict, Any
 
 import torch
 import torch.nn as nn
@@ -6,6 +6,7 @@ from torch import optim
 
 from relezoo.algorithms.base import Policy
 from relezoo.networks.base import Network
+from relezoo.utils.noise import make_noise
 
 
 class CrossEntropyContinuousPolicy(Policy):
@@ -26,14 +27,26 @@ class CrossEntropyContinuousPolicy(Policy):
 
     def __init__(self,
                  network: Network,
-                 learning_rate: float = 1e-2):
+                 learning_rate: float = 1e-2,
+                 noise: Optional[Dict[str, Any]] = None):
         super(CrossEntropyContinuousPolicy, self).__init__()
         self.net = network
         self.objective = nn.MSELoss()
+        self.out_shape = network.get_output_shape()
         self.optimizer = optim.Adam(self.net.parameters(), learning_rate)
+        self.noise = None
+        if noise is not None:
+            self._build_noise(noise)
         self.nets = {
             "net": "net.cpt"
         }
+
+    def _build_noise(self, noise: Dict[str, Any]):
+        name = noise['name']
+        params = noise['params']
+        if 'size' in params.keys():
+            params['size'] = self.out_shape
+        self.noise = make_noise(name, params)
 
     def _get_policy(self, obs: torch.Tensor):
         mu, sigma = self.net(obs)
@@ -43,6 +56,9 @@ class CrossEntropyContinuousPolicy(Policy):
         obs = obs.to(self.device)
         distribution = self._get_policy(obs)
         action = distribution.sample()
+
+        if self.noise is not None:
+            return action.cpu() + self.noise.sample()
         return action
 
     def learn(self, batch_obs: torch.Tensor, batch_actions: torch.Tensor, batch_weights: Optional[torch.Tensor] = None):
