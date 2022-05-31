@@ -40,14 +40,9 @@ class ReinforceDiscretePolicy(Policy):
             "net": "net.cpt"
         }
 
-    def act(self, obs: torch.Tensor) -> (torch.Tensor, int):
-        """act.
-        Takes an action given the observation.
-        The action will be sampled from a categorical
-        distribution considering the logits outputs from
-        the underlying neural network."""
+    def act(self, obs: torch.Tensor, explore: bool = False) -> (torch.Tensor, int):
         obs = obs.to(self.device)
-        if 0.0 < self.eps < np.random.random():
+        if explore and 0.0 < self.eps < np.random.random():
             self.eps = max(self.eps_min, self.eps * self.eps_decay)
             out_features = self.net.get_output_shape()
             batch_size = obs.shape[0]

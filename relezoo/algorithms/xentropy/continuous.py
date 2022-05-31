@@ -52,12 +52,12 @@ class CrossEntropyContinuousPolicy(Policy):
         mu, sigma = self.net(obs)
         return torch.distributions.Normal(mu, sigma)
 
-    def act(self, obs: torch.Tensor) -> (torch.Tensor, int):
+    def act(self, obs: torch.Tensor, explore: bool = False) -> (torch.Tensor, int):
         obs = obs.to(self.device)
         distribution = self._get_policy(obs)
         action = distribution.sample()
 
-        if self.noise is not None:
+        if explore and self.noise is not None:
             return action.cpu() + self.noise.sample()
         return action
 

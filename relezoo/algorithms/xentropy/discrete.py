@@ -38,8 +38,8 @@ class CrossEntropyDiscretePolicy(Policy):
             "net": "net.cpt"
         }
 
-    def act(self, obs: torch.Tensor) -> (torch.Tensor, int):
-        if 0.0 < self.eps < np.random.random():
+    def act(self, obs: torch.Tensor, explore: bool = False) -> (torch.Tensor, int):
+        if explore and 0.0 < self.eps < np.random.random():
             self.eps = max(self.eps_min, self.eps * self.eps_decay)
             out_features = self.net.get_output_shape()
             batch_size = obs.shape[0]

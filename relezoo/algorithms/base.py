@@ -49,7 +49,7 @@ class Policy(ABC):
         self.device = "cpu"
 
     @abstractmethod
-    def act(self, obs: torch.Tensor) -> (torch.Tensor, int):
+    def act(self, obs: torch.Tensor, explore: bool = False) -> (torch.Tensor, int):
         """Take action given the received observations.
 
         It should be expected to receive the observations
@@ -62,6 +62,12 @@ class Policy(ABC):
         ----------
         obs : torch.Tensor
             Observations Tensor. Expected shape (#agents, observation shape)
+        explore : bool
+            Determines if exploration mechanism should be used while
+            taking the action. **Note:** sending True only means the underlying
+            exploration mechanism will be **used**, it might still not choose
+            an exploratory action if the exploration mechanism normal
+            function determines so.
 
         Returns
         -------
@@ -255,7 +261,7 @@ class Algorithm(ABC):
                 np.concatenate([agent, ob.reshape(1, -1)]) if isinstance(agent, np.ndarray) else ob.reshape(1, -1)
                 for agent, ob in zip(batch_obs, obs)
             ]
-            actions = self.policy.act(torch.tensor(obs)).cpu().numpy()
+            actions = self.policy.act(torch.tensor(obs), explore=True).cpu().numpy()
             actions = actions.reshape(-1, 1)  # TODO currently only supports one dimensional action spaces.
 
             obs, rewards, dones, _ = env.step(actions)

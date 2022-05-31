@@ -50,17 +50,12 @@ class ReinforceContinuousPolicy(Policy):
         mu, sigma = self.net(obs)
         return torch.distributions.Normal(mu, sigma)
 
-    def act(self, obs: torch.Tensor) -> (torch.Tensor, int):
-        """act.
-        Takes an action given the observation.
-        The action will be sampled from a normal
-        distribution considering mu and std output
-        from the underlying neural network."""
+    def act(self, obs: torch.Tensor, explore: bool = False) -> (torch.Tensor, int):
         obs = obs.to(self.device)
         distribution = self._get_policy(obs)
         action = distribution.sample()
 
-        if self.noise is not None:
+        if explore and self.noise is not None:
             return action.cpu() + self.noise.sample()
         return action
 
