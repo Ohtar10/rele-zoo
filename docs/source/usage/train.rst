@@ -1,7 +1,7 @@
 Train
 =====
 
-**Note:** You can find the results for each run in the ``output`` folder at the same folder the command
+**Note:** You can find the results for each run in the ``output`` folder at the same level the command
 was executed.
 
 Run a Training Session
@@ -21,7 +21,8 @@ As seen in :ref:`installation`, relezoo has a default model and environment conf
    context.mean_reward_window=100 \
    context.checkpoints=checkpoints/
 
-As you can see, you can specify several arguments that would modify the behavior of the run. You can see the complete list of parameters via ``relezoo-run --help``.
+As you can see, you can specify several arguments that would modify the behavior of the run.
+You can see the complete list of parameters via ``relezoo-run --help``.
 However, some components may vary depending on which :ref:`relezoo_major_components` you choose.
 
 For example, you can run the same algorithm but for the ``acrobot`` environment instead:
@@ -43,7 +44,7 @@ Similarly, we can run the same environment but using a different algorithm:
 
 Using Parallel Environments
 ---------------------------
-ReleZoo has the posibility to run multiple instances of the same environment. For this you can provide the parallel
+ReleZoo has the possibility to run multiple instances of the same environment. For this you can provide the parallel
 version of the desired environment:
 
 .. code-block:: console

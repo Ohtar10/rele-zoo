@@ -2,7 +2,7 @@ Play
 ====
 
 Play is the mode of using a baseline or checkpoint to load a policy and use it against an environment.
-There is no training or logging involved. This mode is basically for enjoyment or evaluation purposes.
+There is no training involved. This mode is basically for enjoyment or evaluation purposes.
 
 Run a Play Session
 ------------------
@@ -16,7 +16,7 @@ play!. So the full command shouls look like this:
 
 **Notes**
 - Play mode only uses the ``environments@env_test`` property, so you only need to change this when playing against
-other environments.
+other environments. ``environments@env_train`` is ignored.
 - Play also generate logs for later inspection.
 
 This will trigger the default environment and algorithm in play or inference mode using the provided
